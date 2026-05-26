@@ -162,7 +162,7 @@ let scenarioStartTime = null;
 // DATA TRANSMITTER ROUTING MODULE            //
 // ========================================== //
 function sendDataToBackend() {
-  const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbwOxLlnWZnsfuiK2FqsWdzls2M3uMYRCyl-Y0WtTb2AE8IOz1hUkpaKI6aMtPyKCNzX/exec";
+  const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbwE-9liTuWnRpNZS5iHSPFyekQZtCkmDWjDVRypUmPnDDmbEpPYO-Wr3nry8p6jsv-X/exec";
 
   // Build string properties explicitly to guarantee form compatibility
   const queryParts = [];
