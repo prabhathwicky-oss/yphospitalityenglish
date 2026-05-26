@@ -1,6 +1,3 @@
-// ========================================== //
-// 1. CLASSROOM CURRICULUM DATA WAREHOUSE     //
-// ========================================== //
 const ypCurriculum = {
   founder: {
     title: "Introducing Your Trainer: Mr. Prabhath",
@@ -140,7 +137,6 @@ const ypCurriculum = {
   }
 };
 
-// Global Variables
 let activeStream = null;
 let studentProfile = {
   name: '',
@@ -163,22 +159,22 @@ let scenarioTranscript = '';
 let scenarioStartTime = null;
 
 // ========================================== //
-// MASTER AUTO-SAVE SYNCHRONIZATION DISPATCH  //
+// UPDATED DATA TRANSMITTER LINK              //
 // ========================================== //
 function sendDataToBackend() {
-  // YOUR EXPLICIT LINK LOADED SUCCESSFULLY HERE
-  const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbw6pGQLmOoDMNjtdiAttl8r-xIg7SOykXKIjzzny7E5zsWMyujGMOwRmE1UXqNAneFl/exec";
+  const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbx6pGQLmOoDMNjtdiAttl8r-xIg7SOykXKIjzzny7E5zsWMyujGMOwRmE1UXqNAneFl/exec";
 
-  const formData = new URLSearchParams();
-  formData.append("name", studentProfile.name || "Anonymous");
-  formData.append("email", studentProfile.email || "N/A");
-  formData.append("phone", studentProfile.phone || "N/A");
-  formData.append("interviewAnswer", studentProfile.answer || "");
-  formData.append("facePhoto", studentProfile.facePhoto || "");
-  formData.append("teethPhoto", studentProfile.teethPhoto || "");
-  formData.append("fingersPhoto", studentProfile.fingersPhoto || "");
-  formData.append("audioRecording", studentProfile.audioRecording || "");
-  formData.append("friendReflection", studentProfile.friendReflection || "");
+  // Build string properties directly for standard URL encoding
+  const queryParts = [];
+  queryParts.push("name=" + encodeURIComponent(studentProfile.name || "Anonymous"));
+  queryParts.push("email=" + encodeURIComponent(studentProfile.email || "N/A"));
+  queryParts.push("phone=" + encodeURIComponent(studentProfile.phone || "N/A"));
+  queryParts.push("interviewAnswer=" + encodeURIComponent(studentProfile.answer || ""));
+  queryParts.push("facePhoto=" + encodeURIComponent(studentProfile.facePhoto || ""));
+  queryParts.push("teethPhoto=" + encodeURIComponent(studentProfile.teethPhoto || ""));
+  queryParts.push("fingersPhoto=" + encodeURIComponent(studentProfile.fingersPhoto || ""));
+  queryParts.push("audioRecording=" + encodeURIComponent(studentProfile.audioRecording || ""));
+  queryParts.push("friendReflection=" + encodeURIComponent(studentProfile.friendReflection || ""));
 
   fetch(googleSheetWebAppUrl, {
     method: 'POST',
@@ -186,9 +182,9 @@ function sendDataToBackend() {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     },
-    body: formData.toString()
+    body: queryParts.join('&')
   })
-  .then(() => console.log("Progress entry auto-saved successfully!"))
+  .then(() => console.log("Synchronized successfully."))
   .catch(err => console.error("Sync failure:", err));
 }
 
@@ -221,7 +217,7 @@ function saveStudentInfo(event) {
   const wordCount = answer ? answer.split(/\s+/).filter(Boolean).length : 0;
 
   if (!name || !email || !phone || !answer) {
-    answerFeedback.textContent = 'Please fill in all fields, including the interview answer.';
+    answerFeedback.textContent = 'Please fill in all fields.';
     answerFeedback.classList.remove('hidden');
     return;
   }
@@ -255,9 +251,6 @@ function startScenarioRecording() {
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     status.textContent = 'Your browser does not support audio recording.';
-    return;
-  }
-  if (scenarioRecorder && scenarioRecorder.state === 'recording') {
     return;
   }
 
@@ -294,12 +287,12 @@ function startScenarioRecording() {
         if (goodRecording) {
           scenarioPassed = true;
           if (resultEl) {
-            resultEl.innerHTML = '<span class="text-emerald-400 font-bold">✅ Recording accepted.</span> You may now move to another topic.';
+            resultEl.innerHTML = '<span class="text-emerald-400 font-bold">✅ Recording accepted.</span>';
           }
         } else {
           scenarioPassed = false;
           if (resultEl) {
-            resultEl.innerHTML = '<span class="text-rose-400 font-bold">❌ Recording not strong enough.</span> Please try again with a clearer response and speak for at least 8 seconds.';
+            resultEl.innerHTML = '<span class="text-rose-400 font-bold">❌ Recording short.</span> Try again and say at least 50 words.';
           }
         }
         if (stopBtn) stopBtn.setAttribute('disabled', 'true');
@@ -310,7 +303,7 @@ function startScenarioRecording() {
       scenarioRecorder.start();
       if (recordBtn) recordBtn.setAttribute('disabled', 'true');
       if (stopBtn) stopBtn.removeAttribute('disabled');
-      if (status) status.textContent = 'Recording... speak clearly and cover the scenario details.';
+      if (status) status.textContent = 'Recording...';
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
@@ -320,13 +313,11 @@ function startScenarioRecording() {
         recognition.onresult = event => {
           scenarioTranscript += event.results[0][0].transcript + ' ';
         };
-        recognition.onerror = () => {};
         recognition.start();
       }
     })
     .catch(err => {
-      if (status) status.textContent = 'Microphone access is required to record the scenario.';
-      console.error('Microphone error:', err);
+      console.error(err);
     });
 }
 
@@ -406,7 +397,7 @@ function saveFriendReflection(event) {
 
   studentProfile.friendReflection = text;
   studentProfile.friendReflectionSaved = true;
-  feedback.textContent = '✅ Reflection saved. Great job describing your class friend!';
+  feedback.textContent = '✅ Reflection saved.';
   feedback.className = 'text-xs text-emerald-400';
   feedback.classList.remove('hidden');
   sendDataToBackend(); 
@@ -414,25 +405,9 @@ function saveFriendReflection(event) {
 
 function switchModule(moduleKey) {
   if (currentModule === 'scenario' && moduleKey !== 'scenario' && !scenarioPassed) {
-    const container = document.getElementById('workspace-container');
-    if (container) {
-      container.innerHTML = `
-        <div class="p-5 bg-slate-900/50 border border-rose-500 rounded-3xl text-slate-100">
-          <p class="text-sm font-bold mb-2">Please complete the recorded hospitality scenario successfully before switching topics.</p>
-          <p class="text-xs text-slate-400">Use the record button below, speak clearly, and make sure the response is strong enough to pass.</p>
-        </div>`;
-    }
     return;
   }
   if (currentModule === 'playlist' && moduleKey !== 'playlist' && !studentProfile.friendReflectionSaved) {
-    const container = document.getElementById('workspace-container');
-    if (container) {
-      container.innerHTML = `
-        <div class="p-5 bg-slate-900/50 border border-rose-500 rounded-3xl text-slate-100">
-          <p class="text-sm font-bold mb-2">Please submit the required friend reflection before moving to another module.</p>
-          <p class="text-xs text-slate-400">The "Write about a friend" activity is a mandatory part of your hospitality training.</p>
-        </div>`;
-    }
     return;
   }
 
@@ -440,15 +415,11 @@ function switchModule(moduleKey) {
 
   Object.keys(ypCurriculum).forEach(key => {
     const btn = document.getElementById(`btn-${key}`);
-    if (btn) {
-      btn.className = "w-full text-left p-3 rounded-xl hover:bg-slate-700/50 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-3 transition";
-    }
+    if (btn) btn.className = "w-full text-left p-3 rounded-xl hover:bg-slate-700/50 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-3 transition";
   });
 
   const activeBtn = document.getElementById(`btn-${moduleKey}`);
-  if (activeBtn) {
-    activeBtn.className = "w-full text-left p-3 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center gap-3 transition border border-indigo-500/40 shadow-lg";
-  }
+  if (activeBtn) activeBtn.className = "w-full text-left p-3 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center gap-3 transition border border-indigo-500/40 shadow-lg";
 
   const container = document.getElementById("workspace-container");
   const data = ypCurriculum[moduleKey];
@@ -477,7 +448,6 @@ function switchModule(moduleKey) {
             <div id="cam-placeholder" class="text-slate-500 text-center p-4">
               <span class="text-3xl block mb-2">📷</span>
               <p class="text-xs font-semibold">Camera Feed Offline</p>
-              <p class="text-[10px] text-slate-600 mt-0.5">Select an inspection node below to start</p>
             </div>
           </div>
           <div class="flex gap-2 justify-center">
@@ -488,7 +458,7 @@ function switchModule(moduleKey) {
           ${data.pillars.map(item => {
             const hasImg = studentProfile[item.id + 'Photo'];
             const imgTag = hasImg ? `<img src="${hasImg}" class="w-full h-full object-cover rounded-lg"/>` : '🖼️';
-            const dotClass = hasImg ? "w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" : "w-2 h-2 rounded-full bg-slate-600";
+            const dotClass = hasImg ? "w-2 h-2 rounded-full bg-emerald-400" : "w-2 h-2 rounded-full bg-slate-600";
             return `
             <div id="card-${item.id}" onclick="startGroomingCamera('${item.id}')" class="p-4 bg-slate-900/40 border border-slate-700/60 rounded-xl cursor-pointer hover:border-indigo-500/40 transition flex gap-4 items-start">
               <div class="w-16 h-16 rounded-lg bg-slate-950 border border-slate-800 shrink-0 overflow-hidden flex items-center justify-center text-slate-600 text-xl" id="slot-${item.id}">${imgTag}</div>
@@ -526,7 +496,6 @@ function switchModule(moduleKey) {
         <div class="space-y-3">
           ${sec.steps.map(step => `
             <div class="flex items-start gap-3 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
-              <span class="text-sm mt-0.5 select-none">💬</span>
               <p class="text-xs text-slate-300 font-medium leading-relaxed">${step}</p>
             </div>
           `).join('')}
@@ -545,7 +514,6 @@ function switchModule(moduleKey) {
         <div class="space-y-3">
           ${sec.steps.map(step => `
             <div class="flex items-start gap-3 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80">
-              <span class="text-sm mt-0.5 select-none">📝</span>
               <p class="text-xs text-slate-300 font-medium leading-relaxed">${step}</p>
             </div>
           `).join('')}
@@ -567,10 +535,9 @@ function switchModule(moduleKey) {
           <button id="scenario-record-toggle" onclick="startScenarioRecording()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-bold transition">Start Recording</button>
           <button id="scenario-stop-btn" onclick="stopScenarioRecording()" disabled class="px-5 py-3 bg-slate-700 text-slate-300 rounded-2xl text-sm font-bold transition">Stop Recording</button>
         </div>
-        <div id="scenario-status" class="text-xs text-slate-400">Press Start to record your response.</div>
+        <div id="scenario-status" class="text-xs text-slate-400">Press Start to record.</div>
         <audio id="scenario-audio-preview" controls class="w-full ${studentProfile.audioRecording ? '' : 'hidden'} mt-3 bg-slate-950 rounded-2xl" src="${studentProfile.audioRecording || ''}"></audio>
-        <div id="scenario-result" class="text-xs text-slate-400">${scenarioPassed ? '<span class="text-emerald-400 font-bold">✅ Recording accepted.</span> You may now move to another topic.' : ''}</div>
-        <p class="text-[11px] text-slate-500">You must record a strong response before moving to another topic.</p>
+        <div id="scenario-result" class="text-xs text-slate-400">${scenarioPassed ? '✅ Recording accepted.' : ''}</div>
       </div>
     `;
   } else if (moduleKey === "vocabulary") {
@@ -615,18 +582,16 @@ function switchModule(moduleKey) {
     container.innerHTML = `
       <h2 class="text-2xl font-black text-white flex items-center gap-2">🗣️ ${data.title}</h2>
       <p class="text-xs text-slate-400 mt-1 mb-6 leading-relaxed">${data.desc}</p>
-      <div id="pronounce-feedback" class="mb-4 text-xs bg-slate-900 p-3 rounded-xl border border-slate-950 text-slate-400 italic">Select an action step to check vocal calibration...</div>
+      <div id="pronounce-feedback" class="mb-4 text-xs bg-slate-900 p-3 rounded-xl text-slate-400 italic">Select an action step...</div>
       <div class="space-y-2.5">${verbsHTML}</div>
     `;
   } else if (moduleKey === "playlist") {
-    const activeSongsClass = playlistActiveSubtab === 'songs' ? 'px-4 py-2 rounded-full bg-indigo-500 text-white text-[11px] font-bold shadow' : 'px-4 py-2 rounded-full bg-slate-900 text-slate-300 text-[11px] hover:bg-slate-700';
-    const activeFriendClass = playlistActiveSubtab === 'friend' ? 'px-4 py-2 rounded-full bg-indigo-500 text-white text-[11px] font-bold shadow' : 'px-4 py-2 rounded-full bg-slate-900 text-slate-300 text-[11px] hover:bg-slate-700';
     container.innerHTML = `
       <h2 class="text-2xl font-black text-white flex items-center gap-2">🎵 ${data.title}</h2>
       <p class="text-xs text-slate-400 mt-1 mb-6 leading-relaxed">${data.desc}</p>
       <div class="flex flex-wrap gap-3 mb-5">
-        <button id="playlist-tab-songs" onclick="switchPlaylistTab('songs', ypCurriculum.playlist)" class="${activeSongsClass}">Songs</button>
-        <button id="playlist-tab-friend" onclick="switchPlaylistTab('friend', ypCurriculum.playlist)" class="${activeFriendClass}">Write about a friend</button>
+        <button id="playlist-tab-songs" onclick="switchPlaylistTab('songs', ypCurriculum.playlist)">Songs</button>
+        <button id="playlist-tab-friend" onclick="switchPlaylistTab('friend', ypCurriculum.playlist)">Write about a friend</button>
       </div>
       <div id="playlist-subtab-content"></div>
     `;
@@ -635,21 +600,9 @@ function switchModule(moduleKey) {
   currentModule = moduleKey;
 }
 
-// ========================================== //
-// 3. GROOMING CAMERA FRAMEWORK INTERFACES    //
-// ========================================== //
 let currentTargetTargetId = "";
-
 function startGroomingCamera(targetId) {
   currentTargetTargetId = targetId;
-  ["face", "teeth", "fingers"].forEach(id => {
-    const itemCard = document.getElementById(`card-${id}`);
-    if (itemCard) itemCard.className = "p-4 bg-slate-900/40 border border-slate-700/60 rounded-xl cursor-pointer hover:border-indigo-500/40 transition flex gap-4 items-start";
-  });
-  
-  const activeCard = document.getElementById(`card-${targetId}`);
-  if (activeCard) activeCard.className = "p-4 bg-slate-900/40 border-2 border-indigo-500 rounded-xl cursor-pointer transition flex gap-4 items-start shadow-lg bg-slate-900/80";
-
   const videoElement = document.getElementById("webcam-preview");
   const placeholder = document.getElementById("cam-placeholder");
   const snapBtn = document.getElementById("snap-btn");
@@ -661,11 +614,10 @@ function startGroomingCamera(targetId) {
       videoElement.classList.remove("hidden");
       placeholder.classList.add("hidden");
       snapBtn.removeAttribute("disabled");
-      snapBtn.className = "px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition shadow-md cursor-pointer animate-pulse";
+      snapBtn.className = "px-5 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl cursor-pointer";
     })
     .catch(err => {
-      console.error("Camera access error:", err);
-      if (placeholder) placeholder.innerHTML = `❌ <p class="text-xs text-rose-400 font-bold mt-1">Camera access blocked.</p><p class="text-[9px] text-slate-500">Enable permissions.</p>`;
+      console.error(err);
     });
 }
 
@@ -681,28 +633,10 @@ function capturePhoto() {
   const dataUrl = canvas.toDataURL("image/png");
 
   studentProfile[currentTargetTargetId + 'Photo'] = dataUrl;
-
   const targetSlot = document.getElementById(`slot-${currentTargetTargetId}`);
   if (targetSlot) targetSlot.innerHTML = `<img src="${dataUrl}" class="w-full h-full object-cover rounded-lg"/>`;
 
-  const targetDot = document.getElementById(`dot-${currentTargetTargetId}`);
-  if (targetDot) targetDot.className = "w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400";
-
   stopWebcam();
-
-  if (video) video.classList.add("hidden");
-  const placeholder = document.getElementById("cam-placeholder");
-  if (placeholder) {
-    placeholder.classList.remove("hidden");
-    placeholder.innerHTML = `✨ <p class="text-xs text-emerald-400 font-bold mt-1">Section Logged Successfully!</p><p class="text-[9px] text-slate-500">Tap another segment to proceed</p>`;
-  }
-
-  const snapBtn = document.getElementById("snap-btn");
-  if (snapBtn) {
-    snapBtn.setAttribute("disabled", "true");
-    snapBtn.className = "px-5 py-2 bg-slate-700 opacity-50 cursor-not-allowed text-slate-400 text-xs font-bold rounded-xl transition";
-  }
-
   sendDataToBackend(); 
 }
 
@@ -713,9 +647,6 @@ function stopWebcam() {
   }
 }
 
-// ========================================== //
-// 4. UTILITY AUDIO ENGINE LOGIC              //
-// ========================================== //
 function speakWord(targetText) {
   const speakEngine = new SpeechSynthesisUtterance(targetText);
   speakEngine.lang = "en-US";
@@ -727,31 +658,20 @@ function testPronunciation(targetPhrase) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    feedbackBox.textContent = "❌ Your device browser version blocks active speech processing.";
+    feedbackBox.textContent = "❌ Speech processing blocked.";
     return;
   }
 
   const captureEngine = new SpeechRecognition();
   captureEngine.lang = 'en-US';
-  feedbackBox.innerHTML = `🎙 *System Live.* Read out loud now: "${targetPhrase}"`;
+  feedbackBox.innerHTML = `🎙 Speak now...`;
   captureEngine.start();
 
   captureEngine.onresult = (event) => {
-    const spokenInput = event.results[0][0].transcript.toLowerCase().trim();
-    const cleanTarget = targetPhrase.toLowerCase().replace(/[".]/g, "").trim();
-    if (spokenInput.includes(cleanTarget) || cleanTarget.includes(spokenInput)) {
-      feedbackBox.innerHTML = `🏆 <span class="text-emerald-400 font-bold">Excellent Pronunciation!</span> Detected: "${event.results[0][0].transcript}"`;
-    } else {
-      feedbackBox.innerHTML = `⚠️ <span class="text-amber-400 font-bold">Review Accent.</span> Expected: "${targetPhrase}" | Received: "${event.results[0][0].transcript}"`;
-    }
-  };
-
-  captureEngine.onerror = () => {
-    feedbackBox.innerHTML = `❌ <span class="text-rose-400 font-bold">Microphone Error.</span> Ensure browser microphone permissions are enabled.`;
+    feedbackBox.innerHTML = `🏆 Heard: "${event.results[0][0].transcript}"`;
   };
 }
 
-// Setup Page Listeners on Load
 setModuleButtonsState(false);
 const learnerForm = document.getElementById('learner-form');
 if (learnerForm) {
