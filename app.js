@@ -137,8 +137,4 @@ const ypCurriculum = {
   }
 };
 
-// IMPORTANT: REPLACE THIS LINK BELOW WITH YOUR NEW DEPLOYMENT URL
 const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbzZ6LB8l-XiH9E8bmJoLaubN7NX_-rLf3Dutp3km_yscpyQS1JMDSGf6p41KpyAdDF-/exec";
-
-// The rest of your app logic follows here...
-// (Ensure your previous app.js logic for camera, recording, and UI remains below this)
