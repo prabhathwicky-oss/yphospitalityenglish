@@ -20,7 +20,7 @@ const ypCurriculum = {
     pillars: [
       { id: "face", area: "1. Well-Groomed Face & Smile", rule: "Hair neatly combed, clear off the face and collar. Smile brightly to convey warmth to arriving guests." },
       { id: "teeth", area: "2. Dental Cleanliness & Teeth Check", rule: "Ensure perfect oral hygiene. Teeth must look spotlessly clean and fresh before interactions." },
-      { id: "fingers", area: "3. Hands & Fingers Presentation", rule: "Nails cut short, meticulously clean, free from chips or bright, unprofessional polishes." }
+      { id: "fingers", area: "3. Hands & Fingers Presentation", rule: "Nails cut short, metals clean, free from chips or bright, unprofessional polishes." }
     ]
   },
   tone: {
@@ -166,9 +166,9 @@ let scenarioStartTime = null;
 // MASTER AUTO-SAVE SYNCHRONIZATION DISPATCH  //
 // ========================================== //
 function sendDataToBackend() {
-  const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbw4_DmRDFwR6hb_6DwMj2WAhAQ0_NDfyf1n4jIBX-Du2l6RNa61BeJ4ME-bb-Hj19Z0/exec";
+  // YOUR EXPLICIT LINK LOADED SUCCESSFULLY HERE
+  const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbw6pGQLmOoDMNjtdiAttl8r-xIg7SOykXKIjzzny7E5zsWMyujGMOwRmE1UXqNAneFl/exec";
 
-  // Pack data as parameters matching x-www-form-urlencoded format
   const formData = new URLSearchParams();
   formData.append("name", studentProfile.name || "Anonymous");
   formData.append("email", studentProfile.email || "N/A");
