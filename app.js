@@ -168,23 +168,25 @@ let scenarioStartTime = null;
 function sendDataToBackend() {
   const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbw4_DmRDFwR6hb_6DwMj2WAhAQ0_NDfyf1n4jIBX-Du2l6RNa61BeJ4ME-bb-Hj19Z0/exec";
 
-  const payload = {
-    name: studentProfile.name || "Anonymous",
-    email: studentProfile.email || "N/A",
-    phone: studentProfile.phone || "N/A",
-    interviewAnswer: studentProfile.answer || "",
-    facePhoto: studentProfile.facePhoto || "",
-    teethPhoto: studentProfile.teethPhoto || "",
-    fingersPhoto: studentProfile.fingersPhoto || "",
-    audioRecording: studentProfile.audioRecording || "",
-    friendReflection: studentProfile.friendReflection || ""
-  };
+  // Pack data as parameters matching x-www-form-urlencoded format
+  const formData = new URLSearchParams();
+  formData.append("name", studentProfile.name || "Anonymous");
+  formData.append("email", studentProfile.email || "N/A");
+  formData.append("phone", studentProfile.phone || "N/A");
+  formData.append("interviewAnswer", studentProfile.answer || "");
+  formData.append("facePhoto", studentProfile.facePhoto || "");
+  formData.append("teethPhoto", studentProfile.teethPhoto || "");
+  formData.append("fingersPhoto", studentProfile.fingersPhoto || "");
+  formData.append("audioRecording", studentProfile.audioRecording || "");
+  formData.append("friendReflection", studentProfile.friendReflection || "");
 
   fetch(googleSheetWebAppUrl, {
     method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    mode: 'no-cors', 
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: formData.toString()
   })
   .then(() => console.log("Progress entry auto-saved successfully!"))
   .catch(err => console.error("Sync failure:", err));
@@ -241,7 +243,7 @@ function saveStudentInfo(event) {
   document.getElementById('learner-summary').classList.remove('hidden');
   
   setModuleButtonsState(true);
-  sendDataToBackend(); // Immediate Auto-Save
+  sendDataToBackend(); 
   switchModule('founder');
 }
 
@@ -276,12 +278,11 @@ function startScenarioRecording() {
           audioPreview.classList.remove('hidden');
         }
 
-        // Convert audio to dataUrl Base64 to safely ship to Google Forms/Drive
         const reader = new FileReader();
         reader.readAsDataURL(blob);
         reader.onloadend = function() {
           studentProfile.audioRecording = reader.result;
-          sendDataToBackend(); // Automatic background update with file
+          sendDataToBackend(); 
         };
 
         const requiredWords = ['welcome', 'room', 'breakfast', 'assist', 'quiet'];
@@ -408,7 +409,7 @@ function saveFriendReflection(event) {
   feedback.textContent = '✅ Reflection saved. Great job describing your class friend!';
   feedback.className = 'text-xs text-emerald-400';
   feedback.classList.remove('hidden');
-  sendDataToBackend(); // Final sync update
+  sendDataToBackend(); 
 }
 
 function switchModule(moduleKey) {
@@ -679,7 +680,6 @@ function capturePhoto() {
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
   const dataUrl = canvas.toDataURL("image/png");
 
-  // Assign image data URL dynamically onto the target property string
   studentProfile[currentTargetTargetId + 'Photo'] = dataUrl;
 
   const targetSlot = document.getElementById(`slot-${currentTargetTargetId}`);
@@ -703,7 +703,7 @@ function capturePhoto() {
     snapBtn.className = "px-5 py-2 bg-slate-700 opacity-50 cursor-not-allowed text-slate-400 text-xs font-bold rounded-xl transition";
   }
 
-  sendDataToBackend(); // Immediate dispatch with picture data
+  sendDataToBackend(); 
 }
 
 function stopWebcam() {
