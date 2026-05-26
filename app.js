@@ -162,8 +162,7 @@ let scenarioStartTime = null;
 // DATA TRANSMITTER ROUTING MODULE            //
 // ========================================== //
 function sendDataToBackend() {
-  // PASTE YOUR GOOGLE SHEET WEB APP EXEC URL INSIDE THE QUOTATION MARKS BELOW:
-  const googleSheetWebAppUrl = "YOUR_NEW_WEB_APP_URL_HERE";
+  const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbwOxLlnWZnsfuiK2FqsWdzls2M3uMYRCyl-Y0WtTb2AE8IOz1hUkpaKI6aMtPyKCNzX/exec";
 
   // Build string properties explicitly to guarantee form compatibility
   const queryParts = [];
