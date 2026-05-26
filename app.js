@@ -159,12 +159,13 @@ let scenarioTranscript = '';
 let scenarioStartTime = null;
 
 // ========================================== //
-// UPDATED DATA TRANSMITTER LINK              //
+// DATA TRANSMITTER ROUTING MODULE            //
 // ========================================== //
 function sendDataToBackend() {
-  const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbx6pGQLmOoDMNjtdiAttl8r-xIg7SOykXKIjzzny7E5zsWMyujGMOwRmE1UXqNAneFl/exec";
+  // PASTE YOUR GOOGLE SHEET WEB APP EXEC URL INSIDE THE QUOTATION MARKS BELOW:
+  const googleSheetWebAppUrl = "YOUR_NEW_WEB_APP_URL_HERE";
 
-  // Build string properties directly for standard URL encoding
+  // Build string properties explicitly to guarantee form compatibility
   const queryParts = [];
   queryParts.push("name=" + encodeURIComponent(studentProfile.name || "Anonymous"));
   queryParts.push("email=" + encodeURIComponent(studentProfile.email || "N/A"));
@@ -184,7 +185,7 @@ function sendDataToBackend() {
     },
     body: queryParts.join('&')
   })
-  .then(() => console.log("Synchronized successfully."))
+  .then(() => console.log("Payload sync attempted successfully."))
   .catch(err => console.error("Sync failure:", err));
 }
 
@@ -441,7 +442,7 @@ function switchModule(moduleKey) {
     container.innerHTML = `
       <h2 class="text-2xl font-black text-white flex items-center gap-2">👔 ${data.title}</h2>
       <p class="text-xs text-slate-400 mt-1 mb-6 leading-relaxed">${data.desc}</p>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 grid-rows-none lg:grid-cols-2 gap-6">
         <div class="space-y-4">
           <div class="bg-slate-900 rounded-2xl border border-slate-700 overflow-hidden relative aspect-video flex items-center justify-center">
             <video id="webcam-preview" autoplay playsinline class="w-full h-full object-cover hidden"></video>
