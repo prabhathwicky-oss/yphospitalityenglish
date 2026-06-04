@@ -138,3 +138,83 @@ const ypCurriculum = {
 };
 
 const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbzZ6LB8l-XiH9E8bmJoLaubN7NX_-rLf3Dutp3km_yscpyQS1JMDSGf6p41KpyAdDF-/exec";
+
+
+// --- Core Logic for YP Hospitality English Academy ---
+
+// 1. Handle Form Submission
+document.getElementById('learner-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const name = document.getElementById('student-name').value;
+  const email = document.getElementById('student-email').value;
+  const phone = document.getElementById('student-phone').value;
+  const answer = document.getElementById('student-answer').value;
+
+  // Validate essay length (50 words minimum)
+  const wordCount = answer.trim().split(/\s+/).length;
+  if (wordCount < 50) {
+    const feedback = document.getElementById('answer-feedback');
+    feedback.textContent = `Your reflection is ${wordCount} words. Please write at least 50 words to proceed.`;
+    feedback.classList.remove('hidden');
+    return;
+  }
+
+  // Hide form, show summary, and unlock navigation
+  document.getElementById('learner-form').parentElement.classList.add('hidden');
+  document.getElementById('learner-summary').classList.remove('hidden');
+  document.getElementById('summary-name').textContent = name;
+  document.getElementById('summary-email').textContent = email;
+  document.getElementById('summary-phone').textContent = phone;
+
+  // Unlock all navigation buttons
+  const buttons = document.querySelectorAll('nav button');
+  buttons.forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('cursor-not-allowed', 'opacity-60');
+    btn.classList.add('hover:bg-indigo-900/40', 'hover:text-indigo-300');
+  });
+
+  // Load first module
+  switchModule('founder');
+});
+
+// 2. Module Switching Function
+function switchModule(moduleId) {
+  const container = document.getElementById('workspace-container');
+  // Logic to load data from the 'ypCurriculum' object defined in your source
+  if (typeof ypCurriculum !== 'undefined' && ypCurriculum[moduleId]) {
+    const data = ypCurriculum[moduleId];
+    container.innerHTML = `
+      <div class="w-full text-left">
+        <h2 class="text-2xl font-black text-white mb-2">${data.title}</h2>
+        <p class="text-sm text-slate-400 mb-6">${data.desc}</p>
+        <div class="space-y-4">
+          ${renderContent(moduleId, data)}
+        </div>
+      </div>
+    `;
+  }
+}
+
+// 3. Helper to Render Module Content
+function renderContent(id, data) {
+  if (id === 'founder') {
+    return data.facts.map(f => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><span class="block text-[10px] font-bold text-indigo-400 uppercase">${f.label}</span><p class="text-xs text-slate-300">${f.text}</p></div>`).join('');
+  }
+  
+  if (id === 'grooming' || id === 'tone') {
+      return data.pillars.map(p => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><span class="block text-[10px] font-bold text-indigo-400 uppercase">${p.area || p.element}</span><p class="text-xs text-slate-300">${p.rule || p.tip}</p></div>`).join('');
+  }
+  
+  if (id === 'emotions') {
+      return data.framework.map(w => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><span class="block text-[10px] font-bold text-indigo-400 uppercase">${w.w}</span><p class="text-xs text-slate-300">${w.purpose}</p></div>`).join('');
+  }
+  
+  if (id === 'verbs') {
+      return data.actions.map(a => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300">${a}</div>`).join('');
+  }
+  
+  // Default fallback for other sections
+  return `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><p class="text-xs text-slate-500">Content rendering for ${data.title}...</p></div>`;
+}
