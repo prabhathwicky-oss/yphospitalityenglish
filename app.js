@@ -1,14 +1,14 @@
 const ypCurriculum = {
   founder: {
-    title: "Introducing Your Trainer: Mr. Prabhath",
-    desc: "Practice speaking about your trainer. You must follow this exact 6-step sequence out loud:",
+    title: "Introducing Your Friend",
+    desc: "Practice speaking about a hypothetical friend. You must fill in the blanks and follow this exact 6-step sequence out loud:",
     facts: [
-      { label: "1. Name", text: "My trainer's name is Mr. Prabhath Wickramasinghe." },
-      { label: "2. Age", text: "He is an energetic executive with over a decade of senior hospitality leadership experience." },
-      { label: "3. Location", text: "He is based in Colombo, managing regional educational operations." },
-      { label: "4. Education", text: "He holds an MBA from Staffordshire University and completed executive training at Harvard Business School." },
-      { label: "5. Hobby", text: "In his free time, he is a passionate chess player and a creative writer." },
-      { label: "6. Target", text: "His ultimate target is to empower YP Education students to become international luxury hotel leaders." }
+      { label: "1. Name", text: "My friend's name is [Choose a Name]." },
+      { label: "2. Age", text: "He/She is [Age] years old and is a highly energetic person." },
+      { label: "3. Location", text: "He/She is based in [City/Country]." },
+      { label: "4. Education & Work", text: "He/She studied at [School/University] and works as a [Profession]." },
+      { label: "5. Hobby", text: "In their free time, they are passionate about [Hobby, e.g., reading/sports]." },
+      { label: "6. Target", text: "Their ultimate target is to [Personal Goal, e.g., travel the world]." }
     ]
   },
   grooming: {
@@ -193,7 +193,7 @@ document.getElementById('learner-form').addEventListener('submit', function(e) {
 
 
 // --- 2. MODULE NAVIGATION ---
-function switchModule(moduleId) {
+window.switchModule = function(moduleId) {
   // Turn off camera/mic if user navigates away
   if (activeMediaStream) {
     activeMediaStream.getTracks().forEach(track => track.stop());
@@ -234,10 +234,10 @@ function appendMediaInterfaces(id) {
          <h3 class="text-sm font-bold text-white mb-4">📸 Live Camera Verification</h3>
          <video id="webcam-video" autoplay playsinline class="w-full max-w-sm rounded-lg bg-black mx-auto mb-4 border border-slate-700"></video>
          <div class="flex flex-wrap justify-center gap-3">
-             <button onclick="startCamera()" class="px-4 py-2 bg-indigo-600 text-xs rounded-lg text-white font-bold hover:bg-indigo-500 transition">1. Turn On Camera</button>
-             <button onclick="snapPhoto('facePhoto', 'Face')" class="px-4 py-2 bg-emerald-600 text-xs rounded-lg text-white font-bold hover:bg-emerald-500 transition">Snap Face</button>
-             <button onclick="snapPhoto('teethPhoto', 'Teeth')" class="px-4 py-2 bg-emerald-600 text-xs rounded-lg text-white font-bold hover:bg-emerald-500 transition">Snap Teeth</button>
-             <button onclick="snapPhoto('fingersPhoto', 'Fingers')" class="px-4 py-2 bg-emerald-600 text-xs rounded-lg text-white font-bold hover:bg-emerald-500 transition">Snap Fingers</button>
+             <button onclick="window.startCamera()" class="px-4 py-2 bg-indigo-600 text-xs rounded-lg text-white font-bold hover:bg-indigo-500 transition">1. Turn On Camera</button>
+             <button onclick="window.snapPhoto('facePhoto', 'Face')" class="px-4 py-2 bg-emerald-600 text-xs rounded-lg text-white font-bold hover:bg-emerald-500 transition">Snap Face</button>
+             <button onclick="window.snapPhoto('teethPhoto', 'Teeth')" class="px-4 py-2 bg-emerald-600 text-xs rounded-lg text-white font-bold hover:bg-emerald-500 transition">Snap Teeth</button>
+             <button onclick="window.snapPhoto('fingersPhoto', 'Fingers')" class="px-4 py-2 bg-emerald-600 text-xs rounded-lg text-white font-bold hover:bg-emerald-500 transition">Snap Fingers</button>
          </div>
          <p id="camera-status" class="text-xs font-medium text-emerald-400 mt-4 h-4"></p>
       </div>
@@ -249,8 +249,8 @@ function appendMediaInterfaces(id) {
       <div class="mt-8 p-6 bg-slate-900 border border-slate-700 rounded-xl text-center">
          <h3 class="text-sm font-bold text-white mb-4">🎙️ Audio Response Recording</h3>
          <div class="flex justify-center gap-4 mb-4">
-             <button id="btn-start-record" onclick="startRecording()" class="px-5 py-3 bg-rose-600 rounded-xl text-white font-bold text-sm hover:bg-rose-500 transition shadow-lg shadow-rose-900/20">🔴 Start Recording</button>
-             <button id="btn-stop-record" onclick="stopRecording()" class="px-5 py-3 bg-slate-600 rounded-xl text-white font-bold text-sm hidden hover:bg-slate-500 transition">⏹️ Stop & Save</button>
+             <button id="btn-start-record" onclick="window.startRecording()" class="px-5 py-3 bg-rose-600 rounded-xl text-white font-bold text-sm hover:bg-rose-500 transition shadow-lg shadow-rose-900/20">🔴 Start Recording</button>
+             <button id="btn-stop-record" onclick="window.stopRecording()" class="px-5 py-3 bg-slate-600 rounded-xl text-white font-bold text-sm hidden hover:bg-slate-500 transition">⏹️ Stop & Save</button>
          </div>
          <audio id="audio-playback" controls class="mx-auto hidden mt-4"></audio>
          <p id="audio-status" class="text-xs font-medium text-emerald-400 mt-4 h-4"></p>
@@ -262,7 +262,9 @@ function appendMediaInterfaces(id) {
 
 
 // --- 4. HARDWARE LOGIC (CAMERA & MIC) ---
-async function startCamera() {
+// Note: Attaching these to 'window' ensures the dynamic HTML buttons can always access them.
+
+window.startCamera = async function() {
   try {
     activeMediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
     document.getElementById('webcam-video').srcObject = activeMediaStream;
@@ -270,9 +272,9 @@ async function startCamera() {
   } catch (err) {
     alert("Camera error: Please allow camera permissions in your browser.");
   }
-}
+};
 
-function snapPhoto(dataKey, label) {
+window.snapPhoto = function(dataKey, label) {
   const video = document.getElementById('webcam-video');
   if (!video.srcObject) return alert("Please turn on the camera first!");
 
@@ -284,9 +286,9 @@ function snapPhoto(dataKey, label) {
   // Save as base64 to global object
   studentData[dataKey] = canvas.toDataURL('image/png');
   document.getElementById('camera-status').textContent = `✅ ${label} captured successfully!`;
-}
+};
 
-async function startRecording() {
+window.startRecording = async function() {
   try {
     activeMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(activeMediaStream);
@@ -317,9 +319,9 @@ async function startRecording() {
   } catch (err) {
     alert("Microphone error: Please allow audio permissions in your browser.");
   }
-}
+};
 
-function stopRecording() {
+window.stopRecording = function() {
   if (mediaRecorder && mediaRecorder.state !== "inactive") {
     mediaRecorder.stop();
     activeMediaStream.getTracks().forEach(track => track.stop());
@@ -328,18 +330,21 @@ function stopRecording() {
     document.getElementById('btn-start-record').textContent = "🔄 Rerecord";
     document.getElementById('audio-status').classList.replace('text-rose-400', 'text-emerald-400');
   }
-}
+};
 
 
 // --- 5. FINAL SUBMISSION TO BACKEND ---
 function injectFinalSubmitButton() {
   const nav = document.querySelector('nav');
-  const btn = document.createElement('button');
-  btn.id = "btn-final-submit";
-  btn.className = "w-full text-center p-4 mt-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm transition shadow-lg shadow-emerald-600/20";
-  btn.innerHTML = "📤 Submit Final Assignment";
-  btn.onclick = submitAllDataToGoogle;
-  nav.appendChild(btn);
+  // Check if button already exists so we don't duplicate it
+  if (!document.getElementById('btn-final-submit')) {
+      const btn = document.createElement('button');
+      btn.id = "btn-final-submit";
+      btn.className = "w-full text-center p-4 mt-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm transition shadow-lg shadow-emerald-600/20";
+      btn.innerHTML = "📤 Submit Final Assignment";
+      btn.onclick = submitAllDataToGoogle;
+      nav.appendChild(btn);
+  }
 }
 
 function submitAllDataToGoogle() {
@@ -351,7 +356,7 @@ function submitAllDataToGoogle() {
   fetch(googleSheetWebAppUrl, {
     method: 'POST',
     body: JSON.stringify(studentData),
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // 'text/plain' prevents CORS preflight blocks
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
   })
   .then(response => response.json())
   .then(data => {
@@ -363,6 +368,7 @@ function submitAllDataToGoogle() {
       alert("Error saving data: " + data.message);
       btn.innerHTML = "❌ Try Again";
       btn.disabled = false;
+      btn.classList.replace('bg-slate-600', 'bg-rose-600');
     }
   })
   .catch(err => {
