@@ -139,20 +139,23 @@ const ypCurriculum = {
 
 const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbzZ6LB8l-XiH9E8bmJoLaubN7NX_-rLf3Dutp3km_yscpyQS1JMDSGf6p41KpyAdDF-/exec";
 
+// --- GLOBAL STATE & MEDIA VARIABLES ---
+let studentData = {
+  name: "", email: "", phone: "", interviewAnswer: "", friendReflection: "Not submitted",
+  facePhoto: "", teethPhoto: "", fingersPhoto: "", audioRecording: ""
+};
 
-// --- Core Logic for YP Hospitality English Academy ---
+let activeMediaStream = null;
+let mediaRecorder = null;
+let audioChunks = [];
 
-// 1. Handle Form Submission
+// --- 1. INITIALIZATION & FORM SUBMISSION ---
 document.getElementById('learner-form').addEventListener('submit', function(e) {
   e.preventDefault();
 
-  const name = document.getElementById('student-name').value;
-  const email = document.getElementById('student-email').value;
-  const phone = document.getElementById('student-phone').value;
   const answer = document.getElementById('student-answer').value;
-
-  // Validate essay length (50 words minimum)
   const wordCount = answer.trim().split(/\s+/).length;
+  
   if (wordCount < 50) {
     const feedback = document.getElementById('answer-feedback');
     feedback.textContent = `Your reflection is ${wordCount} words. Please write at least 50 words to proceed.`;
@@ -160,14 +163,20 @@ document.getElementById('learner-form').addEventListener('submit', function(e) {
     return;
   }
 
-  // Hide form, show summary, and unlock navigation
+  // Save textual data to global state
+  studentData.name = document.getElementById('student-name').value;
+  studentData.email = document.getElementById('student-email').value;
+  studentData.phone = document.getElementById('student-phone').value;
+  studentData.interviewAnswer = answer;
+
+  // Update UI Header
   document.getElementById('learner-form').parentElement.classList.add('hidden');
   document.getElementById('learner-summary').classList.remove('hidden');
-  document.getElementById('summary-name').textContent = name;
-  document.getElementById('summary-email').textContent = email;
-  document.getElementById('summary-phone').textContent = phone;
+  document.getElementById('summary-name').textContent = studentData.name;
+  document.getElementById('summary-email').textContent = studentData.email;
+  document.getElementById('summary-phone').textContent = studentData.phone;
 
-  // Unlock all navigation buttons
+  // Unlock navigation
   const buttons = document.querySelectorAll('nav button');
   buttons.forEach(btn => {
     btn.disabled = false;
@@ -175,14 +184,23 @@ document.getElementById('learner-form').addEventListener('submit', function(e) {
     btn.classList.add('hover:bg-indigo-900/40', 'hover:text-indigo-300');
   });
 
+  // Inject the Final Submit Button into the navigation
+  injectFinalSubmitButton();
+
   // Load first module
   switchModule('founder');
 });
 
-// 2. Module Switching Function
+
+// --- 2. MODULE NAVIGATION ---
 function switchModule(moduleId) {
+  // Turn off camera/mic if user navigates away
+  if (activeMediaStream) {
+    activeMediaStream.getTracks().forEach(track => track.stop());
+    activeMediaStream = null;
+  }
+
   const container = document.getElementById('workspace-container');
-  // Logic to load data from the 'ypCurriculum' object defined in your source
   if (typeof ypCurriculum !== 'undefined' && ypCurriculum[moduleId]) {
     const data = ypCurriculum[moduleId];
     container.innerHTML = `
@@ -192,29 +210,165 @@ function switchModule(moduleId) {
         <div class="space-y-4">
           ${renderContent(moduleId, data)}
         </div>
+        ${appendMediaInterfaces(moduleId)}
       </div>
     `;
   }
 }
 
-// 3. Helper to Render Module Content
+// --- 3. UI RENDERING ---
 function renderContent(id, data) {
-  if (id === 'founder') {
-    return data.facts.map(f => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><span class="block text-[10px] font-bold text-indigo-400 uppercase">${f.label}</span><p class="text-xs text-slate-300">${f.text}</p></div>`).join('');
+  if (id === 'founder') return data.facts.map(f => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><span class="block text-[10px] font-bold text-indigo-400 uppercase">${f.label}</span><p class="text-xs text-slate-300">${f.text}</p></div>`).join('');
+  if (id === 'grooming' || id === 'tone') return data.pillars.map(p => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><span class="block text-[10px] font-bold text-indigo-400 uppercase">${p.area || p.element}</span><p class="text-xs text-slate-300">${p.rule || p.tip}</p></div>`).join('');
+  if (id === 'emotions') return data.framework.map(w => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><span class="block text-[10px] font-bold text-indigo-400 uppercase">${w.w}</span><p class="text-xs text-slate-300">${w.purpose}</p></div>`).join('');
+  if (id === 'verbs') return data.actions.map(a => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300">${a}</div>`).join('');
+  if (id === 'scenario') return `<div class="p-6 bg-indigo-900/30 rounded-xl border border-indigo-500/50 text-indigo-100 text-sm italic">"${data.scenarioText}"</div>`;
+  
+  return `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><p class="text-xs text-slate-500">Standard content loaded.</p></div>`;
+}
+
+function appendMediaInterfaces(id) {
+  if (id === 'grooming') {
+    return `
+      <div class="mt-8 p-6 bg-slate-900 border border-slate-700 rounded-xl text-center">
+         <h3 class="text-sm font-bold text-white mb-4">📸 Live Camera Verification</h3>
+         <video id="webcam-video" autoplay playsinline class="w-full max-w-sm rounded-lg bg-black mx-auto mb-4 border border-slate-700"></video>
+         <div class="flex flex-wrap justify-center gap-3">
+             <button onclick="startCamera()" class="px-4 py-2 bg-indigo-600 text-xs rounded-lg text-white font-bold hover:bg-indigo-500 transition">1. Turn On Camera</button>
+             <button onclick="snapPhoto('facePhoto', 'Face')" class="px-4 py-2 bg-emerald-600 text-xs rounded-lg text-white font-bold hover:bg-emerald-500 transition">Snap Face</button>
+             <button onclick="snapPhoto('teethPhoto', 'Teeth')" class="px-4 py-2 bg-emerald-600 text-xs rounded-lg text-white font-bold hover:bg-emerald-500 transition">Snap Teeth</button>
+             <button onclick="snapPhoto('fingersPhoto', 'Fingers')" class="px-4 py-2 bg-emerald-600 text-xs rounded-lg text-white font-bold hover:bg-emerald-500 transition">Snap Fingers</button>
+         </div>
+         <p id="camera-status" class="text-xs font-medium text-emerald-400 mt-4 h-4"></p>
+      </div>
+    `;
   }
   
-  if (id === 'grooming' || id === 'tone') {
-      return data.pillars.map(p => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><span class="block text-[10px] font-bold text-indigo-400 uppercase">${p.area || p.element}</span><p class="text-xs text-slate-300">${p.rule || p.tip}</p></div>`).join('');
+  if (id === 'scenario') {
+    return `
+      <div class="mt-8 p-6 bg-slate-900 border border-slate-700 rounded-xl text-center">
+         <h3 class="text-sm font-bold text-white mb-4">🎙️ Audio Response Recording</h3>
+         <div class="flex justify-center gap-4 mb-4">
+             <button id="btn-start-record" onclick="startRecording()" class="px-5 py-3 bg-rose-600 rounded-xl text-white font-bold text-sm hover:bg-rose-500 transition shadow-lg shadow-rose-900/20">🔴 Start Recording</button>
+             <button id="btn-stop-record" onclick="stopRecording()" class="px-5 py-3 bg-slate-600 rounded-xl text-white font-bold text-sm hidden hover:bg-slate-500 transition">⏹️ Stop & Save</button>
+         </div>
+         <audio id="audio-playback" controls class="mx-auto hidden mt-4"></audio>
+         <p id="audio-status" class="text-xs font-medium text-emerald-400 mt-4 h-4"></p>
+      </div>
+    `;
   }
-  
-  if (id === 'emotions') {
-      return data.framework.map(w => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><span class="block text-[10px] font-bold text-indigo-400 uppercase">${w.w}</span><p class="text-xs text-slate-300">${w.purpose}</p></div>`).join('');
+  return "";
+}
+
+
+// --- 4. HARDWARE LOGIC (CAMERA & MIC) ---
+async function startCamera() {
+  try {
+    activeMediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    document.getElementById('webcam-video').srcObject = activeMediaStream;
+    document.getElementById('camera-status').textContent = "Camera active. Ready to snap.";
+  } catch (err) {
+    alert("Camera error: Please allow camera permissions in your browser.");
   }
+}
+
+function snapPhoto(dataKey, label) {
+  const video = document.getElementById('webcam-video');
+  if (!video.srcObject) return alert("Please turn on the camera first!");
+
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth; 
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
   
-  if (id === 'verbs') {
-      return data.actions.map(a => `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300">${a}</div>`).join('');
+  // Save as base64 to global object
+  studentData[dataKey] = canvas.toDataURL('image/png');
+  document.getElementById('camera-status').textContent = `✅ ${label} captured successfully!`;
+}
+
+async function startRecording() {
+  try {
+    activeMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(activeMediaStream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
+    
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      document.getElementById('audio-playback').src = URL.createObjectURL(audioBlob);
+      document.getElementById('audio-playback').classList.remove('hidden');
+      
+      // Convert to Base64 for Google Script
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      reader.onloadend = () => {
+        studentData.audioRecording = reader.result;
+        document.getElementById('audio-status').textContent = "✅ Audio saved and ready for submission!";
+      };
+    };
+
+    mediaRecorder.start();
+    document.getElementById('btn-start-record').classList.add('hidden');
+    document.getElementById('btn-stop-record').classList.remove('hidden');
+    document.getElementById('audio-status').textContent = "Recording in progress...";
+    document.getElementById('audio-status').classList.replace('text-emerald-400', 'text-rose-400');
+
+  } catch (err) {
+    alert("Microphone error: Please allow audio permissions in your browser.");
   }
-  
-  // Default fallback for other sections
-  return `<div class="p-4 bg-slate-950 rounded-xl border border-slate-800"><p class="text-xs text-slate-500">Content rendering for ${data.title}...</p></div>`;
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+    activeMediaStream.getTracks().forEach(track => track.stop());
+    document.getElementById('btn-stop-record').classList.add('hidden');
+    document.getElementById('btn-start-record').classList.remove('hidden');
+    document.getElementById('btn-start-record').textContent = "🔄 Rerecord";
+    document.getElementById('audio-status').classList.replace('text-rose-400', 'text-emerald-400');
+  }
+}
+
+
+// --- 5. FINAL SUBMISSION TO BACKEND ---
+function injectFinalSubmitButton() {
+  const nav = document.querySelector('nav');
+  const btn = document.createElement('button');
+  btn.id = "btn-final-submit";
+  btn.className = "w-full text-center p-4 mt-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm transition shadow-lg shadow-emerald-600/20";
+  btn.innerHTML = "📤 Submit Final Assignment";
+  btn.onclick = submitAllDataToGoogle;
+  nav.appendChild(btn);
+}
+
+function submitAllDataToGoogle() {
+  const btn = document.getElementById('btn-final-submit');
+  btn.innerHTML = "⏳ Uploading... Please Wait";
+  btn.disabled = true;
+  btn.classList.replace('bg-emerald-600', 'bg-slate-600');
+
+  fetch(googleSheetWebAppUrl, {
+    method: 'POST',
+    body: JSON.stringify(studentData),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // 'text/plain' prevents CORS preflight blocks
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.status === "success") {
+      alert("Success! Your files and text have been sent to the instructor.");
+      btn.innerHTML = "✅ Assignment Submitted!";
+      btn.classList.replace('bg-slate-600', 'bg-indigo-600');
+    } else {
+      alert("Error saving data: " + data.message);
+      btn.innerHTML = "❌ Try Again";
+      btn.disabled = false;
+    }
+  })
+  .catch(err => {
+    alert("Network error: " + err.message);
+    btn.innerHTML = "❌ Try Again";
+    btn.disabled = false;
+    btn.classList.replace('bg-slate-600', 'bg-rose-600');
+  });
 }
