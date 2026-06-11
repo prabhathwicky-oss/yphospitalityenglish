@@ -15,13 +15,13 @@ const ypCurriculum = {
 
   grooming: {
     title: "Grooming & Cleanliness",
-    desc: "Review the grooming standards below. Each area must meet hotel standards before you save progress.",
+    desc: "Review each standard, take a photo using your phone camera, and confirm before saving.",
     pillars: [
-      { area: "Hair & Face", rule: "Hair neatly styled or tied back. Face clean and well-presented." },
-      { area: "Smile & Teeth", rule: "Warm, genuine smile. Fresh breath. Clean, well-maintained teeth." },
-      { area: "Hands & Nails", rule: "Short, clean nails. No chipped polish. Hands visibly clean." },
-      { area: "Uniform", rule: "Pressed and spotless. Name badge visible on left chest." },
-      { area: "Fragrance", rule: "Subtle fragrance only. Never overwhelming." }
+      { id: "hair",    area: "Hair & Face",    rule: "Hair neatly styled or tied back. Face clean and well-presented.", icon: "💆" },
+      { id: "teeth",   area: "Smile & Teeth",  rule: "Warm, genuine smile. Fresh breath. Clean, well-maintained teeth.", icon: "😁" },
+      { id: "hands",   area: "Hands & Nails",  rule: "Short, clean nails. No chipped polish. Hands visibly clean.", icon: "🤲" },
+      { id: "uniform", area: "Uniform",         rule: "Pressed and spotless. Name badge visible on left chest.", icon: "👔" },
+      { id: "fragrance", area: "Overall Presentation", rule: "Subtle fragrance only. Professional appearance from head to toe.", icon: "✨" }
     ]
   },
 
@@ -254,6 +254,23 @@ const ypCurriculum = {
     ]
   },
 
+  produce: {
+    title: "Name That Produce!",
+    desc: "A picture of a fruit or vegetable will appear. Say its name clearly into the microphone. You must score 90% accuracy to pass each one.",
+    items: [
+      { name: "apple",      emoji: "🍎", phonetic: "AP-ul",       hint: "A classic red or green fruit." },
+      { name: "banana",     emoji: "🍌", phonetic: "buh-NAN-uh",  hint: "Long and yellow." },
+      { name: "broccoli",   emoji: "🥦", phonetic: "BROK-uh-lee", hint: "A green tree-shaped vegetable." },
+      { name: "carrot",     emoji: "🥕", phonetic: "KAR-ut",      hint: "Orange and crunchy." },
+      { name: "tomato",     emoji: "🍅", phonetic: "tuh-MAY-toh", hint: "Red and round — fruit or vegetable?" },
+      { name: "cucumber",   emoji: "🥒", phonetic: "KYOO-kum-ber",hint: "Long and green, cool to the taste." },
+      { name: "strawberry", emoji: "🍓", phonetic: "STRAW-ber-ee", hint: "Small, red, and sweet." },
+      { name: "pineapple",  emoji: "🍍", phonetic: "PYN-ap-ul",   hint: "Tropical, spiky on the outside." },
+      { name: "mango",      emoji: "🥭", phonetic: "MANG-goh",    hint: "Sweet tropical fruit, orange inside." },
+      { name: "eggplant",   emoji: "🍆", phonetic: "EG-plant",    hint: "Purple and elongated." }
+    ]
+  },
+
   playlist: {
     title: "Rhythm Lounge & Reflection",
     desc: "A space to reflect and wind down. Share your thoughts on today's training."
@@ -396,6 +413,7 @@ window.switchModule = function (id) {
     case "emotions": renderEmotions(container); break;
     case "verbs": renderVerbs(container); break;
     case "numbers": renderNumbers(container); break;
+    case "produce": renderProduce(container); break;
     case "playlist": renderPlaylist(container); break;
     default: container.innerHTML = `<p class="text-slate-400">Module coming soon.</p>`;
   }
@@ -451,42 +469,113 @@ window.saveFounder = function () {
 };
 
 // ============================================================================
-// 7. MODULE: GROOMING
+// 7. MODULE: GROOMING (with per-pillar camera capture)
 // ============================================================================
+
+// Store base64 photos keyed by pillar id
+const groomingPhotos = {};
+
 function renderGrooming(container) {
   const data = ypCurriculum.grooming;
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">${data.title}</h2>
     <p class="text-sm text-slate-400 mb-6">${data.desc}</p>
-    <div class="space-y-3 mb-6">
+    <div class="space-y-4 mb-6" id="grooming-pillars">
       ${data.pillars.map((p, i) => `
-        <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-start gap-4">
-          <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-sm font-black shrink-0">${i + 1}</div>
-          <div class="flex-1">
-            <div class="text-xs font-black text-white mb-0.5">${p.area}</div>
-            <div class="text-xs text-slate-400">${p.rule}</div>
+        <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl" id="groom-card-${p.id}">
+          <div class="flex items-start gap-3 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg shrink-0">${p.icon}</div>
+            <div class="flex-1">
+              <div class="text-xs font-black text-white mb-0.5">${p.area}</div>
+              <div class="text-[11px] text-slate-400 leading-relaxed">${p.rule}</div>
+            </div>
+            <span id="groom-status-${p.id}" class="text-lg">⬜</span>
           </div>
-          <input type="checkbox" id="groom-check-${i}" class="w-4 h-4 accent-indigo-500 shrink-0 mt-1">
+
+          <!-- Hidden file input for camera -->
+          <input type="file" accept="image/*" capture="user"
+            id="groom-file-${p.id}"
+            class="hidden"
+            onchange="handleGroomPhoto('${p.id}', this)">
+
+          <!-- Photo preview -->
+          <div id="groom-preview-wrap-${p.id}" class="hidden mb-3">
+            <img id="groom-preview-${p.id}" class="w-full max-h-48 object-cover rounded-xl border border-slate-700" src="" alt="Photo preview">
+          </div>
+
+          <div class="flex gap-2 flex-wrap">
+            <button onclick="document.getElementById('groom-file-${p.id}').click()"
+              class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+              📷 Take Photo
+            </button>
+            <button id="groom-confirm-${p.id}" disabled
+              onclick="confirmGroomPhoto('${p.id}')"
+              class="bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs transition opacity-40 flex items-center gap-1.5">
+              ✅ Confirm
+            </button>
+          </div>
+          <p id="groom-msg-${p.id}" class="text-[11px] font-bold mt-2"></p>
         </div>
       `).join("")}
     </div>
-    <button onclick="saveGrooming()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Confirm & Save Grooming Check</button>
+
+    <button onclick="saveGrooming()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save All Grooming Photos</button>
     <p id="grooming-feedback" class="mt-3 text-xs font-bold"></p>
   `;
 }
 
+window.handleGroomPhoto = function (pillarId, input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    groomingPhotos[pillarId] = e.target.result; // base64
+    const preview = document.getElementById(`groom-preview-${pillarId}`);
+    const wrap = document.getElementById(`groom-preview-wrap-${pillarId}`);
+    const confirmBtn = document.getElementById(`groom-confirm-${pillarId}`);
+    const msg = document.getElementById(`groom-msg-${pillarId}`);
+    if (preview) { preview.src = e.target.result; wrap.classList.remove("hidden"); }
+    if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.classList.remove("opacity-40"); }
+    if (msg) { msg.textContent = "Photo taken — tap Confirm when you're happy with it."; msg.style.color = "#94a3b8"; }
+  };
+  reader.readAsDataURL(file);
+};
+
+window.confirmGroomPhoto = function (pillarId) {
+  const status = document.getElementById(`groom-status-${pillarId}`);
+  const msg = document.getElementById(`groom-msg-${pillarId}`);
+  const card = document.getElementById(`groom-card-${pillarId}`);
+  if (status) status.textContent = "✅";
+  if (msg) { msg.textContent = "Confirmed!"; msg.style.color = "#34d399"; }
+  if (card) { card.classList.remove("border-slate-800"); card.classList.add("border-emerald-700/50"); }
+};
+
 window.saveGrooming = function () {
   const data = ypCurriculum.grooming;
   const fb = document.getElementById("grooming-feedback");
-  const allChecked = data.pillars.every((_, i) => document.getElementById(`groom-check-${i}`).checked);
-  if (!allChecked) {
-    fb.textContent = "❌ Please confirm all grooming standards are met.";
+  const missing = data.pillars.filter(p => !groomingPhotos[p.id]);
+  if (missing.length > 0) {
+    fb.textContent = `❌ Please take and confirm photos for: ${missing.map(p => p.area).join(", ")}.`;
     fb.style.color = "#f87171";
     return;
   }
-  fb.textContent = "✅ Grooming standards confirmed!";
+  const allConfirmed = data.pillars.every(p => {
+    const status = document.getElementById(`groom-status-${p.id}`);
+    return status && status.textContent === "✅";
+  });
+  if (!allConfirmed) {
+    fb.textContent = "❌ Please tap Confirm on each photo before saving.";
+    fb.style.color = "#f87171";
+    return;
+  }
+  fb.textContent = "✅ All grooming photos saved!";
   fb.style.color = "#34d399";
-  saveProgress("grooming", { groomingConfirmed: true });
+  // Save photo thumbnails to studentData (small base64 thumbnails)
+  studentData.groomingPhotos = Object.fromEntries(
+    Object.entries(groomingPhotos).map(([k, v]) => [k, v.substring(0, 200) + "..."])
+  );
+  saveProgress("grooming", { photosCount: data.pillars.length });
+  showToast("📸 All 5 grooming photos saved!", "success");
 };
 
 // ============================================================================
@@ -1085,7 +1174,133 @@ window.nextNumber = function () {
 };
 
 // ============================================================================
-// 16. MODULE: PLAYLIST / REFLECTION
+// 16. MODULE: NAME THAT PRODUCE
+// ============================================================================
+let currentProduceIndex = 0;
+let passedProduce = [];
+
+function renderProduce(container) {
+  currentProduceIndex = 0;
+  passedProduce = [];
+  renderProduceItem(container);
+}
+
+function renderProduceItem(container) {
+  const items = ypCurriculum.produce.items;
+  if (currentProduceIndex >= items.length) {
+    container.innerHTML = `
+      <div class="text-center space-y-4 py-8">
+        <span class="text-5xl">🥇</span>
+        <h2 class="text-2xl font-black text-white">All ${items.length} Produce Named!</h2>
+        <p class="text-slate-400 text-sm">Your pronunciation of common fruits and vegetables is excellent.</p>
+        <button onclick="saveProgress('produce', {itemsPassed: ${items.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Progress</button>
+      </div>`;
+    return;
+  }
+
+  const item = items[currentProduceIndex];
+
+  container.innerHTML = `
+    <h2 class="text-2xl font-black text-white mb-1">Name That Produce!</h2>
+    <p class="text-sm text-slate-400 mb-4">Item ${currentProduceIndex + 1} of ${items.length} — Say the name clearly.</p>
+
+    <div class="flex gap-1.5 mb-6">
+      ${items.map((_, i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentProduceIndex ? 'bg-emerald-500' : i === currentProduceIndex ? 'bg-amber-400' : 'bg-slate-800'}"></div>`).join("")}
+    </div>
+
+    <div class="flex flex-col items-center justify-center gap-4 p-8 bg-slate-900 border border-slate-800 rounded-3xl mb-6">
+      <!-- Big emoji as the "picture" -->
+      <div class="text-[120px] leading-none select-none" id="produce-emoji">${item.emoji}</div>
+      <div class="text-center">
+        <p class="text-[11px] text-slate-500 italic mb-1">${item.hint}</p>
+        <p class="text-[10px] text-indigo-400 uppercase tracking-widest font-bold">What is this called?</p>
+      </div>
+    </div>
+
+    <!-- Answer area — hidden until attempt -->
+    <div id="produce-answer-reveal" class="hidden mb-4 p-4 bg-slate-900 border border-emerald-700/40 rounded-2xl text-center">
+      <div class="text-2xl font-black text-white mb-1">${item.name}</div>
+      <div class="text-indigo-400 text-sm">${item.phonetic}</div>
+    </div>
+
+    <div class="flex gap-3 flex-wrap">
+      <button id="produce-start-btn" onclick="runProduceTest()" class="bg-amber-500 hover:bg-amber-400 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">
+        🎤 Say The Name
+      </button>
+      <button id="produce-next-btn" disabled onclick="nextProduceItem()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">
+        ✅ Next Item
+      </button>
+    </div>
+    <p id="produce-feedback" class="mt-4 text-sm font-bold"></p>
+  `;
+}
+
+window.runProduceTest = function () {
+  const item = ypCurriculum.produce.items[currentProduceIndex];
+  const fb = document.getElementById("produce-feedback");
+  const startBtn = document.getElementById("produce-start-btn");
+
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    fb.textContent = "⚠️ Speech recognition not supported. Please use Google Chrome.";
+    fb.style.color = "#fbbf24";
+    return;
+  }
+
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+
+  startBtn.textContent = "🔴 Listening...";
+  startBtn.classList.add("pulse-recording");
+  fb.textContent = "Say the name of the item now...";
+  fb.style.color = "#94a3b8";
+
+  recognition.onresult = (e) => {
+    startBtn.textContent = "🎤 Say The Name";
+    startBtn.classList.remove("pulse-recording");
+
+    const spoken = e.results[0][0].transcript.toLowerCase().trim();
+    const accuracy = calculateAccuracy(spoken, item.name.toLowerCase());
+
+    // Also check if target word is directly contained (handles extra words)
+    const containsWord = spoken.includes(item.name.toLowerCase());
+    const passed = accuracy >= 90 || containsWord;
+
+    // Reveal the answer
+    const reveal = document.getElementById("produce-answer-reveal");
+    if (reveal) reveal.classList.remove("hidden");
+
+    if (!passed) {
+      fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — you said "<em>${spoken}</em>". The answer is <strong>${item.name}</strong> (${item.phonetic}). Try again!`;
+      fb.style.color = "#f87171";
+    } else {
+      fb.textContent = `✅ Correct! "${item.name}" — great pronunciation!`;
+      fb.style.color = "#34d399";
+      const nextBtn = document.getElementById("produce-next-btn");
+      if (nextBtn) { nextBtn.disabled = false; nextBtn.classList.remove("opacity-50"); }
+      startBtn.disabled = true;
+      startBtn.classList.add("opacity-40");
+    }
+  };
+
+  recognition.onerror = (e) => {
+    startBtn.textContent = "🎤 Say The Name";
+    startBtn.classList.remove("pulse-recording");
+    fb.textContent = "⚠️ Error: " + e.error + ". Please try again.";
+    fb.style.color = "#fbbf24";
+  };
+
+  recognition.start();
+};
+
+window.nextProduceItem = function () {
+  passedProduce.push(currentProduceIndex);
+  currentProduceIndex++;
+  renderProduceItem(document.getElementById("workspace-container"));
+};
+
+// ============================================================================
+// 17. MODULE: PLAYLIST / REFLECTION
 // ============================================================================
 function renderPlaylist(container) {
   container.innerHTML = `
