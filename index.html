@@ -9,29 +9,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    ::-webkit-scrollbar {
-      width: 5px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 99px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #4f46e5;
-    }
-    .animate-fade-in {
-      animation: fadeIn 0.4s ease-out forwards;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .module-btn { transition: all 0.2s; }
+    .module-btn:not(:disabled):hover { background: #1e293b; color: #fff; }
+    .module-btn.active { background: #312e81; color: #fff; border-left: 3px solid #6366f1; }
+    .pulse-recording { animation: pulseRed 1s infinite; }
+    @keyframes pulseRed { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.5);} 50%{box-shadow:0 0 0 8px rgba(239,68,68,0);} }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
@@ -46,8 +35,7 @@
         <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Interactive Training Environment</p>
       </div>
     </div>
-
-    <div id="learner-summary" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-2.5 flex items-center gap-4 max-w-sm transition-all duration-300">
+    <div id="learner-summary" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-2.5 flex items-center gap-4 max-w-sm">
       <div class="w-8 h-8 rounded-xl bg-slate-950 flex items-center justify-center text-base border border-slate-800">🎓</div>
       <div class="truncate">
         <div id="summary-name" class="text-xs font-bold text-white truncate">Profile Loaded</div>
@@ -61,17 +49,16 @@
   </header>
 
   <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden max-w-[1600px] w-full mx-auto">
-    
+
     <aside class="lg:col-span-4 border-r border-slate-900/60 bg-slate-900/20 p-6 flex flex-col gap-6 overflow-y-auto">
-      
-      <section id="registration-section" class="bg-slate-900/50 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden transition-all duration-300">
+
+      <section id="registration-section" class="bg-slate-900/50 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden">
         <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 blur-3xl rounded-full"></div>
         <h2 class="text-sm font-black text-white flex items-center gap-2 mb-1">
           <span class="w-5 h-5 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-bold">1</span>
           Student Identity Verification
         </h2>
         <p class="text-[11px] text-slate-400 leading-relaxed mb-4">Complete your identity fields below to access your dynamic curriculum modules.</p>
-
         <form id="learner-form" class="space-y-3.5">
           <div>
             <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">Full Name</label>
@@ -91,14 +78,13 @@
             <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">Classroom Interview Question</label>
             <p class="text-[10px] text-slate-500 mb-1.5 italic">Why do you want to build a career in luxury hospitality? (Minimum 50 words)</p>
             <textarea id="student-answer" required class="w-full min-h-[90px] bg-slate-950 border border-slate-800 text-slate-100 rounded-xl p-3 text-xs focus:outline-none focus:border-indigo-500 transition font-medium leading-relaxed" placeholder="Type your full reflection response here..."></textarea>
+            <div id="word-count-interview" class="text-[10px] text-slate-500 mt-1">0 / 50 words minimum</div>
           </div>
-          
           <div class="mt-4">
             <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-xs shadow-lg shadow-indigo-600/10 transition duration-200 flex items-center justify-center gap-2">
               <span>🚀 Submit & Initialize Training Modules</span>
             </button>
           </div>
-
           <div id="answer-feedback" class="text-[11px] text-rose-400 font-medium hidden pt-1"></div>
         </form>
       </section>
@@ -108,34 +94,37 @@
           <span>Core Training Curriculum</span>
           <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
         </h2>
-        <button id="btn-founder" disabled onclick="switchModule('founder')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
-          <span>👤</span> Trainer Profile & Identity
+        <button id="btn-founder" disabled onclick="switchModule('founder')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
+          <span>👤</span> Profile & Identity
         </button>
-        <button id="btn-grooming" disabled onclick="switchModule('grooming')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
+        <button id="btn-grooming" disabled onclick="switchModule('grooming')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
           <span>👔</span> Grooming & Cleanliness Check
         </button>
-        <button id="btn-tone" disabled onclick="switchModule('tone')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
+        <button id="btn-tone" disabled onclick="switchModule('tone')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
           <span>🗣️</span> Vocal Mechanics & Tone
         </button>
-        <button id="btn-greetings" disabled onclick="switchModule('greetings')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
-          <span>📞</span> Greeting Scripts & Escalation
+        <button id="btn-greetings" disabled onclick="switchModule('greetings')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
+          <span>📞</span> Greeting Scripts & Problem Solving
         </button>
-        <button id="btn-general" disabled onclick="switchModule('general')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
-          <span>📘</span> Fundamentals & Alphabets
+        <button id="btn-general" disabled onclick="switchModule('general')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
+          <span>📘</span> Fundamentals, Alphabets & Numbers
         </button>
-        <button id="btn-scenario" disabled onclick="switchModule('scenario')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
+        <button id="btn-scenario" disabled onclick="switchModule('scenario')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
           <span>🎙️</span> Recorded Audio Challenge
         </button>
-        <button id="btn-vocabulary" disabled onclick="switchModule('vocabulary')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
+        <button id="btn-vocabulary" disabled onclick="switchModule('vocabulary')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
           <span>📖</span> Whiteboard Matrix Vocabulary
         </button>
-        <button id="btn-emotions" disabled onclick="switchModule('emotions')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
+        <button id="btn-emotions" disabled onclick="switchModule('emotions')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
           <span>🧠</span> Handling Emotional Guests
         </button>
-        <button id="btn-verbs" disabled onclick="switchModule('verbs')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
+        <button id="btn-verbs" disabled onclick="switchModule('verbs')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
           <span>🎤</span> Active Verbs Pronunciation
         </button>
-        <button id="btn-playlist" disabled onclick="switchModule('playlist')" class="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 transition cursor-not-allowed opacity-60">
+        <button id="btn-numbers" disabled onclick="switchModule('numbers')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
+          <span>🔢</span> Tricky Numbers Speaking Test
+        </button>
+        <button id="btn-playlist" disabled onclick="switchModule('playlist')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
           <span>🎵</span> Rhythm Lounge & Reflection
         </button>
       </nav>
