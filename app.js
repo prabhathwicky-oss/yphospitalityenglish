@@ -4,13 +4,15 @@
 const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbzZ6LB8l-XiH9E8bmJoLaubN7NX_-rLf3Dutp3km_yscpyQS1JMDSGf6p41KpyAdDF-/exec"; 
 
 let studentData = {
-// ... rest of the code continues
-// UPDATE THIS URL AFTER DEPLOYING STEP 3
-const googleSheetWebAppUrl = "YOUR_NEW_WEB_APP_URL_HERE"; 
-
-let studentData = {
-  name: "", email: "", phone: "", interviewAnswer: "", friendReflection: "Not submitted",
-  facePhoto: "", teethPhoto: "", fingersPhoto: "", audioRecording: ""
+  name: "", 
+  email: "", 
+  phone: "", 
+  interviewAnswer: "", 
+  friendReflection: "Not submitted",
+  facePhoto: "", 
+  teethPhoto: "", 
+  fingersPhoto: "", 
+  audioRecording: ""
 };
 
 let activeMediaStream = null;
@@ -69,7 +71,7 @@ window.switchModule = function(moduleId) {
         <div class="space-y-4">
           ${renderContent(moduleId, data)}
         </div>
-        ${appendMediaInterfaces(moduleId)}
+        ${typeof appendMediaInterfaces === 'function' ? appendMediaInterfaces(moduleId) : ''}
       </div>
     `;
   }
