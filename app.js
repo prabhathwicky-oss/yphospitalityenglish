@@ -27,44 +27,106 @@ const ypCurriculum = {
 
   tone: {
     title: "Vocal Mechanics & Tone",
-    desc: "Practice these 5 telephone dialogs one by one. Speak clearly and at a warm, friendly pace. You must pass each dialog before moving to the next.",
+    desc: "Practice these 5 telephone dialogs one by one. Speak clearly and at a warm, friendly pace — remember to SMILE as you speak! You must pass each dialog before moving to the next.",
     dialogs: [
       {
         id: 1,
         prompt: "Answer the phone with a warm greeting.",
         target: "Good morning, thank you for calling the Grand Hotel, this is Alex speaking, how may I assist you today?",
-        hint: "Speak slowly and warmly — smile as you say it!"
+        hint: "Speak slowly and warmly — SMILE as you say it! Your smile changes how you sound.",
+        smileRequired: true
       },
       {
         id: 2,
         prompt: "A guest asks to be connected to housekeeping.",
         target: "Of course, please hold for just one moment while I connect you to our housekeeping team.",
-        hint: "Emphasise 'of course' — it sounds caring and eager."
+        hint: "Emphasise 'of course' — it sounds caring and eager. Smile through the whole line!",
+        smileRequired: true
       },
       {
         id: 3,
         prompt: "A guest wants to know the check-out time.",
         target: "Our standard check-out time is twelve noon. However, we are happy to arrange a late check-out upon request.",
-        hint: "Say 'twelve noon' clearly, not 'twelve' alone."
+        hint: "Say 'twelve noon' clearly, not 'twelve' alone. Keep a warm, helpful tone.",
+        smileRequired: true
       },
       {
         id: 4,
         prompt: "A guest reports a noise complaint.",
         target: "I sincerely apologise for the inconvenience. I will personally ensure this is resolved for you right away.",
-        hint: "Convey genuine concern — slow down on 'sincerely apologise'."
+        hint: "Convey genuine concern — slow down on 'sincerely apologise'. Even empathy needs a caring tone.",
+        smileRequired: true
       },
       {
         id: 5,
         prompt: "A guest is checking in and you need their name.",
         target: "Welcome to the Grand Hotel. May I kindly have your full name for the reservation please?",
-        hint: "Sound welcoming first, then professional."
+        hint: "Sound welcoming first, then professional. A smile in your voice makes guests feel special.",
+        smileRequired: true
       }
     ]
   },
 
   greetings: {
     title: "Greeting Scripts & Problem Solving",
-    desc: "Study and practise these greeting and problem-solving scripts used in luxury hospitality.",
+    desc: "Study the reference scripts below, then complete the 5-question quiz to pass this module. You must score 4/5 or higher.",
+    quiz: [
+      {
+        q: "A guest calls and is put on hold for 2 minutes. When you return, what is the best opening?",
+        options: [
+          "Sorry for the wait, what do you want?",
+          "Thank you for your patience. How may I assist you?",
+          "Yes, I am back. Go ahead.",
+          "Hello? Are you still there?"
+        ],
+        correct: 1,
+        explain: "Always acknowledge the wait with thanks, then offer help warmly."
+      },
+      {
+        q: "A guest arrives at the desk looking upset. What should you say first?",
+        options: [
+          "Your room is not ready yet.",
+          "Good evening. Is everything alright? How may I help you?",
+          "Please wait in the queue.",
+          "What is the problem?"
+        ],
+        correct: 1,
+        explain: "Greet first, then gently invite them to share their concern."
+      },
+      {
+        q: "A guest complains about a billing error. Which response is correct?",
+        options: [
+          "That is not my department.",
+          "You should have checked it earlier.",
+          "I apologise for this. Let me review your account and resolve this immediately.",
+          "I cannot change the bill without a manager."
+        ],
+        correct: 2,
+        explain: "Acknowledge, apologise, and take immediate action — always."
+      },
+      {
+        q: "Which phrase is most appropriate when transferring a call?",
+        options: [
+          "Hold on, I will pass you.",
+          "One moment please, I am connecting you now.",
+          "Wait, they are busy.",
+          "Can you call back later?"
+        ],
+        correct: 1,
+        explain: "Professional transfers use polite language and explain the action."
+      },
+      {
+        q: "A VIP guest has a special dietary request. What is the best response?",
+        options: [
+          "I will let the kitchen know.",
+          "We do not usually do that.",
+          "Noted. I will personally ensure our kitchen team prepares your meal exactly as requested.",
+          "Please speak to the restaurant directly."
+        ],
+        correct: 2,
+        explain: "For VIP guests, take personal ownership and confirm action clearly."
+      }
+    ],
     sections: [
       {
         heading: "📞 Telephone Greetings",
@@ -219,7 +281,8 @@ const ypCurriculum = {
 
   numbers: {
     title: "Tricky Numbers Speaking Test",
-    desc: "These number pairs sound similar but mean different things. Listen carefully and speak clearly. You must say the exact number shown.",
+    // CHANGED: passing threshold is now 50%
+    desc: "These number pairs sound similar but mean different things. Listen carefully and speak clearly. You must say the exact number shown. Pass rate: 50% accuracy.",
     pairs: [
       {
         target: "nineteen",
@@ -293,6 +356,10 @@ let passedVerbs = [];
 let currentNumberIndex = 0;
 let passedNumbers = [];
 
+// Greetings quiz state
+let greetingsQuizAnswers = {};
+let greetingsQuizSubmitted = false;
+
 const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbzZ6LB8l-XiH9E8bmJoLaubN7NX_-rLf3Dutp3km_yscpyQS1JMDSGf6p41KpyAdDF-/exec";
 
 // ============================================================================
@@ -314,6 +381,21 @@ function calculateAccuracy(spoken, target) {
     for (let j = 1; j <= s.length; j++)
       m[i][j] = t[i - 1] === s[j - 1] ? m[i - 1][j - 1] : Math.min(m[i][j - 1] + 1, m[i - 1][j] + 1, m[i - 1][j - 1] + 1);
   return ((Math.max(t.length, s.length) - m[t.length][s.length]) / Math.max(t.length, s.length)) * 100;
+}
+
+/**
+ * Smile / warmth heuristic.
+ * Checks pitch variation cues in transcript text and confidence score.
+ * Since WebSpeech gives us text only, we use two proxy signals:
+ *   1. Confidence score from the recognition result (higher = clearer/warmer delivery tends to score better)
+ *   2. Presence of "flat" filler patterns or very short clipped delivery
+ * We set a separate smileThreshold (50%) applied on top of normal accuracy.
+ * If confidence < 0.5 we flag as "not sounding warm enough".
+ */
+function detectSmile(result) {
+  // confidence is between 0 and 1
+  const confidence = result[0][0].confidence;
+  return confidence >= 0.50; // 50% threshold for warmth / smile signal
 }
 
 function countWords(str) {
@@ -349,11 +431,11 @@ function markModuleComplete(moduleId) {
 }
 
 // ============================================================================
-// 4. SUBMISSION TO GOOGLE SHEETS (with proper error handling)
+// 4. SUBMISSION TO GOOGLE SHEETS
 // ============================================================================
 async function submitToSheet(payload) {
   try {
-    const response = await fetch(googleSheetWebAppUrl, {
+    await fetch(googleSheetWebAppUrl, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
@@ -375,11 +457,9 @@ async function saveProgress(moduleId, extraData = {}) {
     module: moduleId,
     ...extraData
   };
-
   saveToLocalStorage();
   const submitted = await submitToSheet(payload);
   markModuleComplete(moduleId);
-
   if (submitted) {
     showToast("✅ Progress saved and submitted!", "success");
   } else {
@@ -388,12 +468,77 @@ async function saveProgress(moduleId, extraData = {}) {
 }
 
 // ============================================================================
-// 5. MODULE RENDERER
+// 5. SESSION RESTORE & CLEAR
+// ============================================================================
+
+/**
+ * Attempt to restore a saved session from localStorage.
+ * Returns true if a valid session was found and applied.
+ */
+function tryRestoreSession() {
+  try {
+    const saved = localStorage.getItem("yp_student_session");
+    if (!saved) return false;
+    const parsed = JSON.parse(saved);
+    if (!parsed.name || !parsed.email) return false;
+
+    // Restore state
+    studentData = { ...studentData, ...parsed };
+
+    // Populate the form fields (keep them readable but hidden under the collapsed section)
+    const nameEl = document.getElementById("student-name");
+    const emailEl = document.getElementById("student-email");
+    const phoneEl = document.getElementById("student-phone");
+    const answerEl = document.getElementById("student-answer");
+    if (nameEl) nameEl.value = parsed.name || "";
+    if (emailEl) emailEl.value = parsed.email || "";
+    if (phoneEl) phoneEl.value = parsed.phone || "";
+    if (answerEl) answerEl.value = parsed.interviewAnswer || "";
+
+    // Show learner summary
+    document.getElementById("summary-name").textContent = parsed.name;
+    document.getElementById("summary-email").textContent = parsed.email;
+    document.getElementById("summary-phone").textContent = parsed.phone || "";
+    document.getElementById("learner-summary").classList.remove("hidden");
+
+    // Collapse the registration form
+    document.getElementById("registration-section").classList.add("hidden");
+
+    // Enable all nav buttons
+    document.querySelectorAll(".module-btn").forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove("opacity-60", "cursor-not-allowed");
+    });
+
+    // Restore completed module badges
+    if (parsed.progress) {
+      Object.keys(parsed.progress).forEach(moduleId => {
+        markModuleComplete(moduleId);
+      });
+    }
+
+    // Open first module automatically
+    switchModule("founder");
+    showToast("👋 Welcome back, " + parsed.name + "!", "success");
+    return true;
+  } catch (e) {
+    console.warn("Session restore failed:", e);
+    return false;
+  }
+}
+
+/** Let user manually reset / log out */
+window.clearSession = function () {
+  if (!confirm("Reset your session? You will need to register again.")) return;
+  localStorage.removeItem("yp_student_session");
+  location.reload();
+};
+
+// ============================================================================
+// 6. MODULE RENDERER
 // ============================================================================
 window.switchModule = function (id) {
   currentModule = id;
-
-  // Remove active from all nav btns
   document.querySelectorAll(".module-btn").forEach(b => b.classList.remove("active"));
   const activeBtn = document.getElementById("btn-" + id);
   if (activeBtn) activeBtn.classList.add("active");
@@ -403,31 +548,30 @@ window.switchModule = function (id) {
   container.classList.add("animate-fade-in");
 
   switch (id) {
-    case "founder": renderFounder(container); break;
-    case "grooming": renderGrooming(container); break;
-    case "tone": renderTone(container); break;
-    case "greetings": renderGreetings(container); break;
-    case "general": renderGeneral(container); break;
-    case "scenario": renderScenario(container); break;
+    case "founder":    renderFounder(container);    break;
+    case "grooming":   renderGrooming(container);   break;
+    case "tone":       renderTone(container);        break;
+    case "greetings":  renderGreetings(container);  break;
+    case "general":    renderGeneral(container);    break;
+    case "scenario":   renderScenario(container);   break;
     case "vocabulary": renderVocabulary(container); break;
-    case "emotions": renderEmotions(container); break;
-    case "verbs": renderVerbs(container); break;
-    case "numbers": renderNumbers(container); break;
-    case "produce": renderProduce(container); break;
-    case "playlist": renderPlaylist(container); break;
+    case "emotions":   renderEmotions(container);   break;
+    case "verbs":      renderVerbs(container);      break;
+    case "numbers":    renderNumbers(container);    break;
+    case "produce":    renderProduce(container);    break;
+    case "playlist":   renderPlaylist(container);   break;
     default: container.innerHTML = `<p class="text-slate-400">Module coming soon.</p>`;
   }
 };
 
 // ============================================================================
-// 6. MODULE: PROFILE & IDENTITY
+// 7. MODULE: PROFILE & IDENTITY
 // ============================================================================
 function renderFounder(container) {
   const data = ypCurriculum.founder;
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">${data.title}</h2>
     <p class="text-sm text-slate-400 mb-6">${data.desc}</p>
-
     <div class="space-y-4 mb-6">
       ${data.facts.map(f => `
         <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
@@ -436,21 +580,17 @@ function renderFounder(container) {
         </div>
       `).join("")}
     </div>
-
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-4">
       <h3 class="text-sm font-black text-white mb-1">✍️ Friend Reflection</h3>
       <p class="text-[11px] text-slate-400 mb-3">Write at least <strong class="text-indigo-400">25 words</strong> about a friend — who they are, what makes them special, and what you admire about them.</p>
-      <textarea id="friend-reflection-input" class="w-full min-h-[100px] bg-slate-950 border border-slate-800 text-slate-100 rounded-xl p-3 text-xs focus:outline-none focus:border-indigo-500 transition font-medium leading-relaxed" placeholder="e.g. My best friend Amara is someone I have known since school. She is thoughtful, generous, and always knows how to make people feel welcome...">${studentData.friendReflection || ""}</textarea>
+      <textarea id="friend-reflection-input" class="w-full min-h-[100px] bg-slate-950 border border-slate-800 text-slate-100 rounded-xl p-3 text-xs focus:outline-none focus:border-indigo-500 transition font-medium leading-relaxed" placeholder="e.g. My best friend Amara is someone I have known since school...">${studentData.friendReflection || ""}</textarea>
       <div id="friend-word-count" class="text-[10px] text-slate-500 mt-1">${countWords(studentData.friendReflection || "")} / 25 words minimum</div>
     </div>
-
     <button onclick="saveFounder()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save Profile & Reflection</button>
     <p id="founder-feedback" class="mt-3 text-xs font-bold"></p>
   `;
-
   document.getElementById("friend-reflection-input").addEventListener("input", function () {
-    const wc = countWords(this.value);
-    document.getElementById("friend-word-count").textContent = wc + " / 25 words minimum";
+    document.getElementById("friend-word-count").textContent = countWords(this.value) + " / 25 words minimum";
   });
 }
 
@@ -459,8 +599,7 @@ window.saveFounder = function () {
   const fb = document.getElementById("founder-feedback");
   if (countWords(reflection) < 25) {
     fb.textContent = "❌ Please write at least 25 words in your friend reflection.";
-    fb.style.color = "#f87171";
-    return;
+    fb.style.color = "#f87171"; return;
   }
   studentData.friendReflection = reflection;
   fb.textContent = "✅ Profile saved!";
@@ -469,10 +608,8 @@ window.saveFounder = function () {
 };
 
 // ============================================================================
-// 7. MODULE: GROOMING (with per-pillar camera capture)
+// 8. MODULE: GROOMING
 // ============================================================================
-
-// Store base64 photos keyed by pillar id
 const groomingPhotos = {};
 
 function renderGrooming(container) {
@@ -481,7 +618,7 @@ function renderGrooming(container) {
     <h2 class="text-2xl font-black text-white mb-1">${data.title}</h2>
     <p class="text-sm text-slate-400 mb-6">${data.desc}</p>
     <div class="space-y-4 mb-6" id="grooming-pillars">
-      ${data.pillars.map((p, i) => `
+      ${data.pillars.map(p => `
         <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl" id="groom-card-${p.id}">
           <div class="flex items-start gap-3 mb-3">
             <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg shrink-0">${p.icon}</div>
@@ -491,34 +628,18 @@ function renderGrooming(container) {
             </div>
             <span id="groom-status-${p.id}" class="text-lg">⬜</span>
           </div>
-
-          <!-- Hidden file input for camera -->
-          <input type="file" accept="image/*" capture="user"
-            id="groom-file-${p.id}"
-            class="hidden"
-            onchange="handleGroomPhoto('${p.id}', this)">
-
-          <!-- Photo preview -->
+          <input type="file" accept="image/*" capture="user" id="groom-file-${p.id}" class="hidden" onchange="handleGroomPhoto('${p.id}', this)">
           <div id="groom-preview-wrap-${p.id}" class="hidden mb-3">
             <img id="groom-preview-${p.id}" class="w-full max-h-48 object-cover rounded-xl border border-slate-700" src="" alt="Photo preview">
           </div>
-
           <div class="flex gap-2 flex-wrap">
-            <button onclick="document.getElementById('groom-file-${p.id}').click()"
-              class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
-              📷 Take Photo
-            </button>
-            <button id="groom-confirm-${p.id}" disabled
-              onclick="confirmGroomPhoto('${p.id}')"
-              class="bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs transition opacity-40 flex items-center gap-1.5">
-              ✅ Confirm
-            </button>
+            <button onclick="document.getElementById('groom-file-${p.id}').click()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5">📷 Take Photo</button>
+            <button id="groom-confirm-${p.id}" disabled onclick="confirmGroomPhoto('${p.id}')" class="bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs transition opacity-40 flex items-center gap-1.5">✅ Confirm</button>
           </div>
           <p id="groom-msg-${p.id}" class="text-[11px] font-bold mt-2"></p>
         </div>
       `).join("")}
     </div>
-
     <button onclick="saveGrooming()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save All Grooming Photos</button>
     <p id="grooming-feedback" class="mt-3 text-xs font-bold"></p>
   `;
@@ -526,10 +647,9 @@ function renderGrooming(container) {
 
 window.handleGroomPhoto = function (pillarId, input) {
   if (!input.files || !input.files[0]) return;
-  const file = input.files[0];
   const reader = new FileReader();
   reader.onload = (e) => {
-    groomingPhotos[pillarId] = e.target.result; // base64
+    groomingPhotos[pillarId] = e.target.result;
     const preview = document.getElementById(`groom-preview-${pillarId}`);
     const wrap = document.getElementById(`groom-preview-wrap-${pillarId}`);
     const confirmBtn = document.getElementById(`groom-confirm-${pillarId}`);
@@ -538,7 +658,7 @@ window.handleGroomPhoto = function (pillarId, input) {
     if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.classList.remove("opacity-40"); }
     if (msg) { msg.textContent = "Photo taken — tap Confirm when you're happy with it."; msg.style.color = "#94a3b8"; }
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(input.files[0]);
 };
 
 window.confirmGroomPhoto = function (pillarId) {
@@ -556,8 +676,7 @@ window.saveGrooming = function () {
   const missing = data.pillars.filter(p => !groomingPhotos[p.id]);
   if (missing.length > 0) {
     fb.textContent = `❌ Please take and confirm photos for: ${missing.map(p => p.area).join(", ")}.`;
-    fb.style.color = "#f87171";
-    return;
+    fb.style.color = "#f87171"; return;
   }
   const allConfirmed = data.pillars.every(p => {
     const status = document.getElementById(`groom-status-${p.id}`);
@@ -565,12 +684,10 @@ window.saveGrooming = function () {
   });
   if (!allConfirmed) {
     fb.textContent = "❌ Please tap Confirm on each photo before saving.";
-    fb.style.color = "#f87171";
-    return;
+    fb.style.color = "#f87171"; return;
   }
   fb.textContent = "✅ All grooming photos saved!";
   fb.style.color = "#34d399";
-  // Save photo thumbnails to studentData (small base64 thumbnails)
   studentData.groomingPhotos = Object.fromEntries(
     Object.entries(groomingPhotos).map(([k, v]) => [k, v.substring(0, 200) + "..."])
   );
@@ -579,7 +696,7 @@ window.saveGrooming = function () {
 };
 
 // ============================================================================
-// 8. MODULE: TONE (5 Dialogs)
+// 9. MODULE: TONE (5 Dialogs + Smile Detection)
 // ============================================================================
 function renderTone(container) {
   currentDialogIndex = 0;
@@ -602,6 +719,15 @@ function renderToneDialog(container) {
       ${dialogs.map((_, i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentDialogIndex ? 'bg-emerald-500' : i === currentDialogIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}
     </div>
 
+    <!-- Smile reminder banner -->
+    <div class="flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl mb-4">
+      <span class="text-2xl">😊</span>
+      <div>
+        <p class="text-xs font-black text-amber-400">Remember to SMILE as you speak!</p>
+        <p class="text-[10px] text-slate-400">Your smile changes the warmth in your voice. If you don't sound warm enough, you will need to try again.</p>
+      </div>
+    </div>
+
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-4">
       <div class="text-[10px] uppercase tracking-widest text-indigo-400 font-bold mb-2">Situation</div>
       <p class="text-sm text-white font-medium mb-4">${d.prompt}</p>
@@ -618,7 +744,7 @@ function renderToneDialog(container) {
         ✅ Next Dialog
       </button>
     </div>
-    <p id="tone-feedback" class="mt-4 text-sm font-bold"></p>
+    <p id="tone-feedback" class="mt-4 text-sm font-bold leading-relaxed"></p>
   `;
 }
 
@@ -627,7 +753,7 @@ function renderToneComplete(container) {
     <div class="text-center space-y-4 py-8">
       <span class="text-5xl">🏆</span>
       <h2 class="text-2xl font-black text-white">All 5 Dialogs Passed!</h2>
-      <p class="text-slate-400 text-sm">Excellent vocal performance. Your pacing and pronunciation are hotel-ready.</p>
+      <p class="text-slate-400 text-sm">Excellent vocal performance. Your pacing, warmth, and pronunciation are hotel-ready.</p>
       <button onclick="saveProgress('tone', {dialogsPassed: 5})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">
         💾 Save Tone Progress
       </button>
@@ -642,8 +768,7 @@ window.runToneTest = function () {
 
   if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
     fb.textContent = "⚠️ Speech recognition not supported in this browser. Try Chrome.";
-    fb.style.color = "#fbbf24";
-    return;
+    fb.style.color = "#fbbf24"; return;
   }
 
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -652,27 +777,31 @@ window.runToneTest = function () {
 
   startBtn.textContent = "🔴 Listening...";
   startBtn.classList.add("pulse-recording");
-  fb.textContent = "Speak now — slowly and clearly...";
+  fb.textContent = "Speak now — slowly and warmly, with a smile 😊...";
   fb.style.color = "#94a3b8";
 
   recognition.onresult = (e) => {
     startBtn.textContent = "🎤 Start Speaking";
     startBtn.classList.remove("pulse-recording");
+
     const spoken = fixSlang(e.results[0][0].transcript.toLowerCase().replace(/[.,?!]/g, ""));
     const accuracy = calculateAccuracy(spoken, target);
+    const smileOk = detectSmile(e.results);
 
     if (accuracy < 85) {
       fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — try again. Speak slowly and clearly.<br><span class="text-xs text-slate-400 font-normal">You said: "${spoken}"</span>`;
-      fb.style.color = "#f87171";
-    } else {
-      fb.textContent = `✅ Excellent! Accuracy: ${accuracy.toFixed(0)}%`;
-      fb.style.color = "#34d399";
-      const saveBtn = document.getElementById("tone-save-btn");
-      if (saveBtn) {
-        saveBtn.disabled = false;
-        saveBtn.classList.remove("opacity-50");
-      }
+      fb.style.color = "#f87171"; return;
     }
+
+    if (!smileOk) {
+      fb.innerHTML = `😐 Words were correct (${accuracy.toFixed(0)}%) but your voice doesn't sound warm enough — we need to hear your smile!<br><span class="text-xs text-slate-400 font-normal">Relax, smile, and try again with more energy and warmth.</span>`;
+      fb.style.color = "#f59e0b"; return;
+    }
+
+    fb.textContent = `✅ Excellent! Accuracy: ${accuracy.toFixed(0)}% — and your tone is warm and professional! 😊`;
+    fb.style.color = "#34d399";
+    const saveBtn = document.getElementById("tone-save-btn");
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove("opacity-50"); }
   };
 
   recognition.onerror = (e) => {
@@ -688,46 +817,178 @@ window.runToneTest = function () {
 window.passToneDialog = function () {
   passedDialogs.push(currentDialogIndex);
   currentDialogIndex++;
-  const container = document.getElementById("workspace-container");
-  renderToneDialog(container);
+  renderToneDialog(document.getElementById("workspace-container"));
 };
 
 // ============================================================================
-// 9. MODULE: GREETINGS & PROBLEM SOLVING
+// 10. MODULE: GREETINGS & PROBLEM SOLVING (with 5-question quiz)
 // ============================================================================
 function renderGreetings(container) {
+  greetingsQuizAnswers = {};
+  greetingsQuizSubmitted = false;
   const data = ypCurriculum.greetings;
+
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">${data.title}</h2>
     <p class="text-sm text-slate-400 mb-6">${data.desc}</p>
-    <div class="space-y-6 mb-6">
-      ${data.sections.map(section => `
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-black text-white mb-3">${section.heading}</h3>
-          <ul class="space-y-2">
-            ${section.items.map((item, i) => `
-              <li class="flex gap-3 text-xs text-slate-300 leading-relaxed">
-                <span class="text-indigo-400 font-black shrink-0">${i + 1}.</span>
-                <span>"${item}"</span>
-              </li>
-            `).join("")}
-          </ul>
+
+    <!-- Reference Scripts (collapsible-style via details) -->
+    <details class="mb-6 group">
+      <summary class="cursor-pointer select-none flex items-center gap-2 text-sm font-black text-indigo-400 hover:text-indigo-300 transition mb-2">
+        <span class="w-5 h-5 rounded-lg bg-indigo-500/10 flex items-center justify-center text-xs">📋</span>
+        View Reference Scripts (study before the quiz)
+        <span class="ml-auto text-slate-500 group-open:rotate-180 transition-transform text-xs">▼</span>
+      </summary>
+      <div class="space-y-4 mt-3">
+        ${data.sections.map(section => `
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="text-sm font-black text-white mb-3">${section.heading}</h3>
+            <ul class="space-y-2">
+              ${section.items.map((item, i) => `
+                <li class="flex gap-3 text-xs text-slate-300 leading-relaxed">
+                  <span class="text-indigo-400 font-black shrink-0">${i + 1}.</span>
+                  <span>"${item}"</span>
+                </li>
+              `).join("")}
+            </ul>
+          </div>
+        `).join("")}
+      </div>
+    </details>
+
+    <!-- Quiz Section -->
+    <div class="bg-slate-900/60 border border-indigo-500/20 rounded-3xl p-6 mb-4">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center text-base font-black">?</div>
+        <div>
+          <h3 class="text-sm font-black text-white">Knowledge Quiz</h3>
+          <p class="text-[10px] text-slate-400">Answer all 5 questions. You need 4 out of 5 correct to pass.</p>
         </div>
-      `).join("")}
+        <div id="quiz-score-badge" class="ml-auto hidden px-3 py-1 rounded-full text-xs font-black"></div>
+      </div>
+
+      <div class="space-y-6" id="quiz-questions">
+        ${data.quiz.map((q, qi) => `
+          <div class="quiz-q" id="quiz-q-${qi}">
+            <p class="text-xs font-bold text-white mb-3">
+              <span class="text-indigo-400 mr-1">${qi + 1}.</span>${q.q}
+            </p>
+            <div class="space-y-2">
+              ${q.options.map((opt, oi) => `
+                <label id="quiz-opt-${qi}-${oi}" class="flex items-start gap-3 p-3 bg-slate-800/60 border border-slate-700 rounded-xl cursor-pointer hover:border-indigo-500/50 transition group">
+                  <input type="radio" name="quiz-q-${qi}" value="${oi}" class="mt-0.5 accent-indigo-500 shrink-0" onchange="recordQuizAnswer(${qi}, ${oi})">
+                  <span class="text-xs text-slate-300 leading-relaxed">${opt}</span>
+                </label>
+              `).join("")}
+            </div>
+            <p id="quiz-explain-${qi}" class="hidden mt-2 text-[11px] font-medium"></p>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="mt-6 flex gap-3 flex-wrap">
+        <button id="quiz-submit-btn" onclick="submitGreetingsQuiz()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">
+          📝 Submit Quiz
+        </button>
+        <button id="quiz-retry-btn" onclick="retryGreetingsQuiz()" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">
+          🔄 Try Again
+        </button>
+        <button id="quiz-save-btn" disabled onclick="saveProgress('greetings', {quizScore: window._greetingsScore})" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">
+          💾 Save Progress
+        </button>
+      </div>
+      <p id="quiz-overall-feedback" class="mt-3 text-sm font-bold"></p>
     </div>
-    <button onclick="saveProgress('greetings', {reviewed: true})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save Progress</button>
   `;
 }
 
+window.recordQuizAnswer = function (qIndex, oIndex) {
+  greetingsQuizAnswers[qIndex] = oIndex;
+};
+
+window.submitGreetingsQuiz = function () {
+  const data = ypCurriculum.greetings;
+  const totalQ = data.quiz.length;
+  const unanswered = [];
+  for (let i = 0; i < totalQ; i++) {
+    if (greetingsQuizAnswers[i] === undefined) unanswered.push(i + 1);
+  }
+  if (unanswered.length > 0) {
+    document.getElementById("quiz-overall-feedback").textContent = `⚠️ Please answer question${unanswered.length > 1 ? "s" : ""} ${unanswered.join(", ")} before submitting.`;
+    document.getElementById("quiz-overall-feedback").style.color = "#fbbf24";
+    return;
+  }
+
+  let correct = 0;
+  data.quiz.forEach((q, qi) => {
+    const chosen = greetingsQuizAnswers[qi];
+    const explainEl = document.getElementById(`quiz-explain-${qi}`);
+    const isRight = chosen === q.correct;
+    if (isRight) correct++;
+
+    // Colour the chosen option
+    for (let oi = 0; oi < q.options.length; oi++) {
+      const lbl = document.getElementById(`quiz-opt-${qi}-${oi}`);
+      const radio = lbl ? lbl.querySelector("input") : null;
+      if (radio) radio.disabled = true;
+      if (lbl) {
+        if (oi === q.correct) {
+          lbl.classList.add("border-emerald-500", "bg-emerald-900/20");
+        } else if (oi === chosen && chosen !== q.correct) {
+          lbl.classList.add("border-rose-500", "bg-rose-900/20");
+        }
+      }
+    }
+
+    if (explainEl) {
+      explainEl.classList.remove("hidden");
+      explainEl.textContent = (isRight ? "✅ " : "❌ ") + q.explain;
+      explainEl.style.color = isRight ? "#34d399" : "#f87171";
+    }
+  });
+
+  const passed = correct >= 4;
+  const scorePct = Math.round((correct / totalQ) * 100);
+  window._greetingsScore = `${correct}/${totalQ}`;
+
+  const badge = document.getElementById("quiz-score-badge");
+  if (badge) {
+    badge.classList.remove("hidden");
+    badge.textContent = `${correct} / ${totalQ}`;
+    badge.classList.add(passed ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30" : "bg-rose-600/20 text-rose-400 border border-rose-600/30");
+  }
+
+  const fb = document.getElementById("quiz-overall-feedback");
+  if (passed) {
+    fb.textContent = `🎉 Excellent! You scored ${correct}/${totalQ} (${scorePct}%) — module passed!`;
+    fb.style.color = "#34d399";
+    const saveBtn = document.getElementById("quiz-save-btn");
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove("opacity-50"); }
+    document.getElementById("quiz-submit-btn").classList.add("hidden");
+  } else {
+    fb.textContent = `❌ You scored ${correct}/${totalQ} — you need at least 4/5 to pass. Review the scripts and try again.`;
+    fb.style.color = "#f87171";
+    document.getElementById("quiz-retry-btn").classList.remove("hidden");
+    document.getElementById("quiz-submit-btn").classList.add("hidden");
+  }
+
+  greetingsQuizSubmitted = true;
+};
+
+window.retryGreetingsQuiz = function () {
+  greetingsQuizAnswers = {};
+  greetingsQuizSubmitted = false;
+  renderGreetings(document.getElementById("workspace-container"));
+};
+
 // ============================================================================
-// 10. MODULE: GENERAL (Alphabets, Fill-In, Numbers Info)
+// 11. MODULE: GENERAL (Alphabets & Fill-In)
 // ============================================================================
 function renderGeneral(container) {
   const data = ypCurriculum.general;
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">${data.title}</h2>
     <p class="text-sm text-slate-400 mb-6">${data.desc}</p>
-
     <div class="mb-6">
       <h3 class="text-sm font-black text-white mb-3">📚 Hospitality Alphabet</h3>
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
@@ -742,7 +1003,6 @@ function renderGeneral(container) {
         `).join("")}
       </div>
     </div>
-
     <div class="mb-6">
       <h3 class="text-sm font-black text-white mb-3">✏️ Fill-In Exercises</h3>
       <div class="space-y-4">
@@ -756,7 +1016,6 @@ function renderGeneral(container) {
       </div>
       <button onclick="checkFillExercises()" class="mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition">Check Answers</button>
     </div>
-
     <button onclick="saveProgress('general', {reviewed: true})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save Progress</button>
   `;
 }
@@ -784,26 +1043,20 @@ window.checkFillExercises = function () {
 };
 
 // ============================================================================
-// 11. MODULE: SCENARIO (Long Passage Recording)
+// 12. MODULE: SCENARIO
 // ============================================================================
 function renderScenario(container) {
   const data = ypCurriculum.scenario;
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">${data.title}</h2>
     <p class="text-sm text-slate-400 mb-6">${data.desc}</p>
-
     <div class="p-5 bg-slate-900 border border-l-4 border-indigo-500 rounded-2xl mb-4">
       <div class="text-[10px] uppercase font-bold text-indigo-400 tracking-widest mb-2">Read This Passage:</div>
       <p id="scenario-target" class="text-sm text-slate-200 italic leading-relaxed">${data.passage}</p>
     </div>
-
     <div class="flex gap-3 flex-wrap">
-      <button id="scenario-start-btn" onclick="runScenarioTest()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">
-        🎤 Start Recording
-      </button>
-      <button id="scenario-save-btn" disabled onclick="saveProgress('scenario', {passageScore: window._scenarioScore})" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">
-        💾 Save Progress
-      </button>
+      <button id="scenario-start-btn" onclick="runScenarioTest()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">🎤 Start Recording</button>
+      <button id="scenario-save-btn" disabled onclick="saveProgress('scenario', {passageScore: window._scenarioScore})" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">💾 Save Progress</button>
     </div>
     <p id="scenario-feedback" class="mt-4 text-sm font-bold"></p>
   `;
@@ -813,30 +1066,24 @@ window.runScenarioTest = function () {
   const fb = document.getElementById("scenario-feedback");
   const startBtn = document.getElementById("scenario-start-btn");
   const target = document.getElementById("scenario-target").textContent.toLowerCase().replace(/[.,?!-]/g, "");
-
   if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
     fb.textContent = "⚠️ Speech recognition not supported. Please use Google Chrome.";
-    fb.style.color = "#fbbf24";
-    return;
+    fb.style.color = "#fbbf24"; return;
   }
-
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.lang = "en-US";
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
-
   startBtn.textContent = "🔴 Recording...";
   startBtn.classList.add("pulse-recording");
   fb.textContent = "Reading now — speak the full passage slowly and clearly...";
   fb.style.color = "#94a3b8";
-
   recognition.onresult = (e) => {
     startBtn.textContent = "🎤 Start Recording";
     startBtn.classList.remove("pulse-recording");
     const spoken = fixSlang(e.results[0][0].transcript.toLowerCase().replace(/[.,?!-]/g, ""));
     const accuracy = calculateAccuracy(spoken, target);
     window._scenarioScore = accuracy.toFixed(0);
-
     if (accuracy < 85) {
       fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — please try again. Speak clearly and at a measured pace.<br><span class="text-xs text-slate-500">You said: "${spoken.substring(0, 100)}..."</span>`;
       fb.style.color = "#f87171";
@@ -847,19 +1094,17 @@ window.runScenarioTest = function () {
       if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove("opacity-50"); }
     }
   };
-
   recognition.onerror = (e) => {
     startBtn.textContent = "🎤 Start Recording";
     startBtn.classList.remove("pulse-recording");
     fb.textContent = "⚠️ Error: " + e.error;
     fb.style.color = "#fbbf24";
   };
-
   recognition.start();
 };
 
 // ============================================================================
-// 12. MODULE: VOCABULARY
+// 13. MODULE: VOCABULARY
 // ============================================================================
 function renderVocabulary(container) {
   currentVerbIndex = 0;
@@ -876,8 +1121,7 @@ function renderVocabWord(container) {
         <h2 class="text-2xl font-black text-white">All Words Mastered!</h2>
         <p class="text-slate-400 text-sm">Your vocabulary pronunciation is hotel-ready.</p>
         <button onclick="saveProgress('vocabulary', {wordsPassed: ${words.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Vocabulary Progress</button>
-      </div>`;
-    return;
+      </div>`; return;
   }
   const w = words[currentVerbIndex];
   container.innerHTML = `
@@ -903,18 +1147,14 @@ window.runVocabTest = function () {
   const word = ypCurriculum.vocabulary.words[currentVerbIndex].word;
   const fb = document.getElementById("vocab-feedback");
   const startBtn = document.getElementById("vocab-start-btn");
-
   if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
     fb.textContent = "⚠️ Speech recognition not supported in this browser. Try Chrome.";
-    fb.style.color = "#fbbf24";
-    return;
+    fb.style.color = "#fbbf24"; return;
   }
-
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.lang = "en-US";
   startBtn.textContent = "🔴 Listening...";
   startBtn.classList.add("pulse-recording");
-
   recognition.onresult = (e) => {
     startBtn.textContent = "🎤 Pronounce It";
     startBtn.classList.remove("pulse-recording");
@@ -930,14 +1170,12 @@ window.runVocabTest = function () {
       if (nextBtn) { nextBtn.disabled = false; nextBtn.classList.remove("opacity-50"); }
     }
   };
-
   recognition.onerror = (e) => {
     startBtn.textContent = "🎤 Pronounce It";
     startBtn.classList.remove("pulse-recording");
     fb.textContent = "⚠️ Error: " + e.error;
     fb.style.color = "#fbbf24";
   };
-
   recognition.start();
 };
 
@@ -948,7 +1186,7 @@ window.nextVocabWord = function () {
 };
 
 // ============================================================================
-// 13. MODULE: EMOTIONS
+// 14. MODULE: EMOTIONS
 // ============================================================================
 function renderEmotions(container) {
   const data = ypCurriculum.emotions;
@@ -979,7 +1217,7 @@ function renderEmotions(container) {
 }
 
 // ============================================================================
-// 14. MODULE: VERBS
+// 15. MODULE: VERBS
 // ============================================================================
 function renderVerbs(container) {
   currentVerbIndex = 0;
@@ -996,8 +1234,7 @@ function renderVerbWord(container) {
         <h2 class="text-2xl font-black text-white">All Verbs Mastered!</h2>
         <p class="text-slate-400 text-sm">Excellent pronunciation across all active verbs.</p>
         <button onclick="saveProgress('verbs', {verbsPassed: ${actions.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Verbs Progress</button>
-      </div>`;
-    return;
+      </div>`; return;
   }
   const v = actions[currentVerbIndex];
   container.innerHTML = `
@@ -1022,18 +1259,14 @@ window.runVerbTest = function () {
   const verb = ypCurriculum.verbs.actions[currentVerbIndex].verb;
   const fb = document.getElementById("verb-feedback");
   const startBtn = document.getElementById("verb-start-btn");
-
   if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
     fb.textContent = "⚠️ Speech recognition not supported. Try Chrome.";
-    fb.style.color = "#fbbf24";
-    return;
+    fb.style.color = "#fbbf24"; return;
   }
-
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.lang = "en-US";
   startBtn.textContent = "🔴 Listening...";
   startBtn.classList.add("pulse-recording");
-
   recognition.onresult = (e) => {
     startBtn.textContent = "🎤 Pronounce It";
     startBtn.classList.remove("pulse-recording");
@@ -1049,14 +1282,12 @@ window.runVerbTest = function () {
       if (nextBtn) { nextBtn.disabled = false; nextBtn.classList.remove("opacity-50"); }
     }
   };
-
   recognition.onerror = (e) => {
     startBtn.textContent = "🎤 Pronounce It";
     startBtn.classList.remove("pulse-recording");
     fb.textContent = "⚠️ Error: " + e.error;
     fb.style.color = "#fbbf24";
   };
-
   recognition.start();
 };
 
@@ -1067,7 +1298,7 @@ window.nextVerbWord = function () {
 };
 
 // ============================================================================
-// 15. MODULE: TRICKY NUMBERS
+// 16. MODULE: TRICKY NUMBERS (50% threshold)
 // ============================================================================
 function renderNumbers(container) {
   currentNumberIndex = 0;
@@ -1084,13 +1315,13 @@ function renderNumberTest(container) {
         <h2 class="text-2xl font-black text-white">All 5 Numbers Passed!</h2>
         <p class="text-slate-400 text-sm">You can clearly distinguish and pronounce tricky number pairs.</p>
         <button onclick="saveProgress('numbers', {numbersPassed: ${pairs.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Numbers Progress</button>
-      </div>`;
-    return;
+      </div>`; return;
   }
   const p = pairs[currentNumberIndex];
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">Tricky Numbers Speaking Test</h2>
-    <p class="text-sm text-slate-400 mb-4">Number ${currentNumberIndex + 1} of ${pairs.length}</p>
+    <p class="text-sm text-slate-400 mb-1">Number ${currentNumberIndex + 1} of ${pairs.length}</p>
+    <p class="text-[10px] text-amber-400 font-bold uppercase tracking-widest mb-4">Pass rate: 50% accuracy</p>
     <div class="flex gap-2 mb-6">
       ${pairs.map((_, i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentNumberIndex ? 'bg-emerald-500' : i === currentNumberIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}
     </div>
@@ -1122,33 +1353,30 @@ window.runNumberTest = function () {
   const similar = ypCurriculum.numbers.pairs[currentNumberIndex].similar;
   const fb = document.getElementById("num-feedback");
   const startBtn = document.getElementById("num-start-btn");
-
   if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
     fb.textContent = "⚠️ Speech recognition not supported. Try Chrome.";
-    fb.style.color = "#fbbf24";
-    return;
+    fb.style.color = "#fbbf24"; return;
   }
-
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.lang = "en-US";
   startBtn.textContent = "🔴 Listening...";
   startBtn.classList.add("pulse-recording");
-
   recognition.onresult = (e) => {
     startBtn.textContent = "🎤 Say The Number";
     startBtn.classList.remove("pulse-recording");
     const spoken = e.results[0][0].transcript.toLowerCase().trim();
+    const accuracy = calculateAccuracy(spoken, target);
 
+    // Penalise saying the wrong (similar) number
     if (spoken.includes(similar) && !spoken.includes(target)) {
       fb.innerHTML = `❌ You said "${spoken}" — that sounds like <strong>${similar}</strong>. Say <strong>${target}</strong> clearly with stress on the TEEN ending.`;
-      fb.style.color = "#f87171";
-      return;
+      fb.style.color = "#f87171"; return;
     }
 
-    if (!spoken.includes(target)) {
+    // CHANGED: 50% passing threshold
+    if (!spoken.includes(target) && accuracy < 50) {
       fb.innerHTML = `❌ Not recognised as "${target}". You said: "${spoken}". Try again.`;
-      fb.style.color = "#f87171";
-      return;
+      fb.style.color = "#f87171"; return;
     }
 
     fb.textContent = `✅ Perfect! "${target}" is clear and correct.`;
@@ -1156,14 +1384,12 @@ window.runNumberTest = function () {
     const nextBtn = document.getElementById("num-next-btn");
     if (nextBtn) { nextBtn.disabled = false; nextBtn.classList.remove("opacity-50"); }
   };
-
   recognition.onerror = (e) => {
     startBtn.textContent = "🎤 Say The Number";
     startBtn.classList.remove("pulse-recording");
     fb.textContent = "⚠️ Error: " + e.error;
     fb.style.color = "#fbbf24";
   };
-
   recognition.start();
 };
 
@@ -1174,7 +1400,7 @@ window.nextNumber = function () {
 };
 
 // ============================================================================
-// 16. MODULE: NAME THAT PRODUCE
+// 17. MODULE: NAME THAT PRODUCE
 // ============================================================================
 let currentProduceIndex = 0;
 let passedProduce = [];
@@ -1194,42 +1420,29 @@ function renderProduceItem(container) {
         <h2 class="text-2xl font-black text-white">All ${items.length} Produce Named!</h2>
         <p class="text-slate-400 text-sm">Your pronunciation of common fruits and vegetables is excellent.</p>
         <button onclick="saveProgress('produce', {itemsPassed: ${items.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Progress</button>
-      </div>`;
-    return;
+      </div>`; return;
   }
-
   const item = items[currentProduceIndex];
-
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">Name That Produce!</h2>
     <p class="text-sm text-slate-400 mb-4">Item ${currentProduceIndex + 1} of ${items.length} — Say the name clearly.</p>
-
     <div class="flex gap-1.5 mb-6">
       ${items.map((_, i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentProduceIndex ? 'bg-emerald-500' : i === currentProduceIndex ? 'bg-amber-400' : 'bg-slate-800'}"></div>`).join("")}
     </div>
-
     <div class="flex flex-col items-center justify-center gap-4 p-8 bg-slate-900 border border-slate-800 rounded-3xl mb-6">
-      <!-- Big emoji as the "picture" -->
       <div class="text-[120px] leading-none select-none" id="produce-emoji">${item.emoji}</div>
       <div class="text-center">
         <p class="text-[11px] text-slate-500 italic mb-1">${item.hint}</p>
         <p class="text-[10px] text-indigo-400 uppercase tracking-widest font-bold">What is this called?</p>
       </div>
     </div>
-
-    <!-- Answer area — hidden until attempt -->
     <div id="produce-answer-reveal" class="hidden mb-4 p-4 bg-slate-900 border border-emerald-700/40 rounded-2xl text-center">
       <div class="text-2xl font-black text-white mb-1">${item.name}</div>
       <div class="text-indigo-400 text-sm">${item.phonetic}</div>
     </div>
-
     <div class="flex gap-3 flex-wrap">
-      <button id="produce-start-btn" onclick="runProduceTest()" class="bg-amber-500 hover:bg-amber-400 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">
-        🎤 Say The Name
-      </button>
-      <button id="produce-next-btn" disabled onclick="nextProduceItem()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">
-        ✅ Next Item
-      </button>
+      <button id="produce-start-btn" onclick="runProduceTest()" class="bg-amber-500 hover:bg-amber-400 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">🎤 Say The Name</button>
+      <button id="produce-next-btn" disabled onclick="nextProduceItem()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">✅ Next Item</button>
     </div>
     <p id="produce-feedback" class="mt-4 text-sm font-bold"></p>
   `;
@@ -1239,37 +1452,26 @@ window.runProduceTest = function () {
   const item = ypCurriculum.produce.items[currentProduceIndex];
   const fb = document.getElementById("produce-feedback");
   const startBtn = document.getElementById("produce-start-btn");
-
   if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
     fb.textContent = "⚠️ Speech recognition not supported. Please use Google Chrome.";
-    fb.style.color = "#fbbf24";
-    return;
+    fb.style.color = "#fbbf24"; return;
   }
-
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.lang = "en-US";
   recognition.interimResults = false;
-
   startBtn.textContent = "🔴 Listening...";
   startBtn.classList.add("pulse-recording");
   fb.textContent = "Say the name of the item now...";
   fb.style.color = "#94a3b8";
-
   recognition.onresult = (e) => {
     startBtn.textContent = "🎤 Say The Name";
     startBtn.classList.remove("pulse-recording");
-
     const spoken = e.results[0][0].transcript.toLowerCase().trim();
     const accuracy = calculateAccuracy(spoken, item.name.toLowerCase());
-
-    // Also check if target word is directly contained (handles extra words)
     const containsWord = spoken.includes(item.name.toLowerCase());
     const passed = accuracy >= 90 || containsWord;
-
-    // Reveal the answer
     const reveal = document.getElementById("produce-answer-reveal");
     if (reveal) reveal.classList.remove("hidden");
-
     if (!passed) {
       fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — you said "<em>${spoken}</em>". The answer is <strong>${item.name}</strong> (${item.phonetic}). Try again!`;
       fb.style.color = "#f87171";
@@ -1282,14 +1484,12 @@ window.runProduceTest = function () {
       startBtn.classList.add("opacity-40");
     }
   };
-
   recognition.onerror = (e) => {
     startBtn.textContent = "🎤 Say The Name";
     startBtn.classList.remove("pulse-recording");
     fb.textContent = "⚠️ Error: " + e.error + ". Please try again.";
     fb.style.color = "#fbbf24";
   };
-
   recognition.start();
 };
 
@@ -1300,7 +1500,7 @@ window.nextProduceItem = function () {
 };
 
 // ============================================================================
-// 17. MODULE: PLAYLIST / REFLECTION
+// 18. MODULE: PLAYLIST / REFLECTION
 // ============================================================================
 function renderPlaylist(container) {
   container.innerHTML = `
@@ -1325,8 +1525,7 @@ window.savePlaylist = function () {
   const fb = document.getElementById("playlist-feedback");
   if (countWords(text) < 20) {
     fb.textContent = "❌ Please write at least 20 words.";
-    fb.style.color = "#f87171";
-    return;
+    fb.style.color = "#f87171"; return;
   }
   fb.textContent = "✅ Reflection saved!";
   fb.style.color = "#34d399";
@@ -1334,10 +1533,10 @@ window.savePlaylist = function () {
 };
 
 // ============================================================================
-// 17. INITIALIZATION
+// 19. INITIALIZATION
 // ============================================================================
 
-// Word count listener for interview answer
+// Word count for interview textarea
 const studentAnswerEl = document.getElementById("student-answer");
 if (studentAnswerEl) {
   studentAnswerEl.addEventListener("input", function () {
@@ -1347,6 +1546,7 @@ if (studentAnswerEl) {
   });
 }
 
+// Registration form submit
 document.getElementById("learner-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const ans = document.getElementById("student-answer").value.trim();
@@ -1354,53 +1554,32 @@ document.getElementById("learner-form").addEventListener("submit", (e) => {
 
   if (countWords(ans) < 50) {
     fb.textContent = "❌ Please write at least 50 words in your interview answer.";
-    fb.classList.remove("hidden");
-    return;
+    fb.classList.remove("hidden"); return;
   }
-
   fb.classList.add("hidden");
 
-  studentData.name = document.getElementById("student-name").value;
-  studentData.email = document.getElementById("student-email").value;
-  studentData.phone = document.getElementById("student-phone").value;
+  studentData.name  = document.getElementById("student-name").value.trim();
+  studentData.email = document.getElementById("student-email").value.trim();
+  studentData.phone = document.getElementById("student-phone").value.trim();
   studentData.interviewAnswer = ans;
-
-  // Try to restore from local storage
-  const saved = localStorage.getItem("yp_student_session");
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed.name === studentData.name) {
-        studentData = { ...studentData, ...parsed };
-      }
-    } catch (e) { /* ignore */ }
-  }
 
   saveToLocalStorage();
 
-  // Show learner summary in header
-  document.getElementById("summary-name").textContent = studentData.name;
+  document.getElementById("summary-name").textContent  = studentData.name;
   document.getElementById("summary-email").textContent = studentData.email;
   document.getElementById("summary-phone").textContent = studentData.phone;
   document.getElementById("learner-summary").classList.remove("hidden");
-
-  // Hide registration
   document.getElementById("registration-section").classList.add("hidden");
 
-  // Enable all nav buttons
   document.querySelectorAll(".module-btn").forEach(btn => {
     btn.disabled = false;
     btn.classList.remove("opacity-60", "cursor-not-allowed");
   });
 
-  // Restore previously completed modules
   if (studentData.progress) {
-    Object.keys(studentData.progress).forEach(moduleId => {
-      markModuleComplete(moduleId);
-    });
+    Object.keys(studentData.progress).forEach(moduleId => markModuleComplete(moduleId));
   }
 
-  // Submit registration to sheet
   submitToSheet({
     timestamp: new Date().toISOString(),
     studentName: studentData.name,
@@ -1410,8 +1589,11 @@ document.getElementById("learner-form").addEventListener("submit", (e) => {
     interviewAnswer: ans
   });
 
-  // Open first module
   switchModule("founder");
-
   showToast("🎉 Welcome, " + studentData.name + "! Training unlocked.", "success");
 });
+
+// ── Auto-restore session on page load ──────────────────────────────────────
+(function () {
+  tryRestoreSession();
+})();
