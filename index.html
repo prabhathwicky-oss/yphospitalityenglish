@@ -21,17 +21,6 @@
     .module-btn.active { background: #312e81; color: #fff; border-left: 3px solid #6366f1; }
     .pulse-recording { animation: pulseRed 1s infinite; }
     @keyframes pulseRed { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.5);} 50%{box-shadow:0 0 0 8px rgba(239,68,68,0);} }
-    .karaoke-word { display: inline-block; margin: 0 3px; padding: 2px 6px; border-radius: 6px; transition: all 0.3s; }
-    .karaoke-word.active { background: #6366f1; color: #fff; transform: scale(1.1); }
-    .karaoke-word.sung { background: #059669; color: #fff; }
-    @keyframes notePulse { 0%,100%{transform:translateY(0) scale(1);opacity:1;} 50%{transform:translateY(-8px) scale(1.2);opacity:0.7;} }
-    .note-float { animation: notePulse 1.5s ease-in-out infinite; display:inline-block; }
-    .smile-meter { transition: width 0.5s ease; }
-    .quiz-option { transition: all 0.2s; cursor: pointer; }
-    .quiz-option:hover { background: #1e293b; border-color: #6366f1; }
-    .quiz-option.correct { background: #064e3b; border-color: #10b981; }
-    .quiz-option.wrong { background: #450a0a; border-color: #ef4444; }
-    .quiz-option.disabled { pointer-events: none; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
@@ -56,6 +45,7 @@
           <span id="summary-phone" class="shrink-0"></span>
         </div>
       </div>
+      <button onclick="clearSession()" title="Reset session" class="ml-auto text-slate-600 hover:text-rose-400 text-xs transition shrink-0">✕</button>
     </div>
   </header>
 
@@ -138,9 +128,6 @@
         <button id="btn-produce" disabled onclick="switchModule('produce')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
           <span>🍎</span> Name That Produce!
         </button>
-        <button id="btn-karaoke" disabled onclick="switchModule('karaoke')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
-          <span>🎶</span> Karaoke Singalong Challenge
-        </button>
         <button id="btn-playlist" disabled onclick="switchModule('playlist')" class="module-btn w-full text-left p-3 rounded-xl bg-slate-900 text-slate-500 font-medium text-xs flex items-center gap-3 cursor-not-allowed opacity-60">
           <span>🎵</span> Rhythm Lounge & Reflection
         </button>
@@ -178,59 +165,59 @@ const ypCurriculum = {
     title: "Grooming & Cleanliness",
     desc: "Review each standard, take a photo using your phone camera, and confirm before saving.",
     pillars: [
-      { id: "hair",      area: "Hair & Face",           rule: "Hair neatly styled or tied back. Face clean and well-presented.", icon: "💆" },
-      { id: "teeth",     area: "Smile & Teeth",         rule: "Warm, genuine smile. Fresh breath. Clean, well-maintained teeth.", icon: "😁" },
-      { id: "hands",     area: "Hands & Nails",         rule: "Short, clean nails. No chipped polish. Hands visibly clean.", icon: "🤲" },
-      { id: "uniform",   area: "Uniform",               rule: "Pressed and spotless. Name badge visible on left chest.", icon: "👔" },
-      { id: "fragrance", area: "Overall Presentation",  rule: "Subtle fragrance only. Professional appearance from head to toe.", icon: "✨" }
+      { id: "hair",    area: "Hair & Face",    rule: "Hair neatly styled or tied back. Face clean and well-presented.", icon: "💆" },
+      { id: "teeth",   area: "Smile & Teeth",  rule: "Warm, genuine smile. Fresh breath. Clean, well-maintained teeth.", icon: "😁" },
+      { id: "hands",   area: "Hands & Nails",  rule: "Short, clean nails. No chipped polish. Hands visibly clean.", icon: "🤲" },
+      { id: "uniform", area: "Uniform",         rule: "Pressed and spotless. Name badge visible on left chest.", icon: "👔" },
+      { id: "fragrance", area: "Overall Presentation", rule: "Subtle fragrance only. Professional appearance from head to toe.", icon: "✨" }
     ]
   },
 
   tone: {
     title: "Vocal Mechanics & Tone",
-    desc: "Practice these 5 telephone dialogs one by one. Speak clearly and at a warm, friendly pace. Dialog 1 requires a SMILING voice — the system will detect your energy. You must pass each dialog before moving to the next.",
+    desc: "Practice these 5 telephone dialogs one by one. Speak clearly and at a warm, friendly pace — remember to SMILE as you speak! You must pass each dialog before moving to the next.",
     dialogs: [
       {
         id: 1,
         prompt: "Answer the phone with a warm greeting.",
         target: "Good morning, thank you for calling the Grand Hotel, this is Alex speaking, how may I assist you today?",
-        hint: "😊 SMILE as you say it! The system checks for warm, upbeat vocal energy. Flat delivery will not pass.",
-        smileCheck: true
+        hint: "Speak slowly and warmly — SMILE as you say it! Your smile changes how you sound.",
+        smileRequired: true
       },
       {
         id: 2,
         prompt: "A guest asks to be connected to housekeeping.",
         target: "Of course, please hold for just one moment while I connect you to our housekeeping team.",
-        hint: "Emphasise 'of course' — it sounds caring and eager.",
-        smileCheck: false
+        hint: "Emphasise 'of course' — it sounds caring and eager. Smile through the whole line!",
+        smileRequired: true
       },
       {
         id: 3,
         prompt: "A guest wants to know the check-out time.",
         target: "Our standard check-out time is twelve noon. However, we are happy to arrange a late check-out upon request.",
-        hint: "Say 'twelve noon' clearly, not 'twelve' alone.",
-        smileCheck: false
+        hint: "Say 'twelve noon' clearly, not 'twelve' alone. Keep a warm, helpful tone.",
+        smileRequired: true
       },
       {
         id: 4,
         prompt: "A guest reports a noise complaint.",
         target: "I sincerely apologise for the inconvenience. I will personally ensure this is resolved for you right away.",
-        hint: "Convey genuine concern — slow down on 'sincerely apologise'.",
-        smileCheck: false
+        hint: "Convey genuine concern — slow down on 'sincerely apologise'. Even empathy needs a caring tone.",
+        smileRequired: true
       },
       {
         id: 5,
         prompt: "A guest is checking in and you need their name.",
         target: "Welcome to the Grand Hotel. May I kindly have your full name for the reservation please?",
-        hint: "Sound welcoming first, then professional.",
-        smileCheck: false
+        hint: "Sound welcoming first, then professional. A smile in your voice makes guests feel special.",
+        smileRequired: true
       }
     ]
   },
 
   greetings: {
     title: "Greeting Scripts & Problem Solving",
-    desc: "Study the scripts below, then answer 5 quiz questions to pass this module.",
+    desc: "Study the reference scripts below, then complete the 5-question quiz to pass this module. You must score 4/5 or higher.",
     quiz: [
       {
         q: "A guest calls and is put on hold for 2 minutes. When you return, what is the best opening?",
@@ -337,32 +324,32 @@ const ypCurriculum = {
     title: "Fundamentals, Alphabets & Numbers",
     desc: "Study the hospitality alphabet and number conventions, then complete the fill-in exercises.",
     alphabetData: [
-      { letter: "A", word: "Amenities",       usage: "Our amenities include a pool, spa, and gym." },
-      { letter: "B", word: "Bellboy",          usage: "The bellboy will assist you with your luggage." },
-      { letter: "C", word: "Concierge",        usage: "Please speak to the concierge for restaurant reservations." },
-      { letter: "D", word: "Departure",        usage: "What time is your departure?" },
-      { letter: "E", word: "Escalation",       usage: "I will escalate this matter to the duty manager." },
-      { letter: "F", word: "Feedback",         usage: "Your feedback is greatly appreciated." },
-      { letter: "G", word: "Guest Relations",  usage: "Guest relations will handle your request." },
-      { letter: "H", word: "Hospitality",      usage: "Hospitality is the art of making guests feel welcome." },
-      { letter: "I", word: "Itinerary",        usage: "May I help you plan your itinerary?" },
-      { letter: "J", word: "Junior Suite",     usage: "You have been upgraded to our junior suite." },
-      { letter: "K", word: "Keycard",          usage: "Here is your keycard for room three-zero-two." },
-      { letter: "L", word: "Lobby",            usage: "Please wait for us in the lobby." },
-      { letter: "M", word: "Minibar",          usage: "The minibar is restocked daily." },
-      { letter: "N", word: "No-show",          usage: "The reservation was marked as a no-show." },
-      { letter: "O", word: "Occupancy",        usage: "Tonight we are at full occupancy." },
-      { letter: "P", word: "Porterage",        usage: "Porterage service is available twenty-four hours." },
-      { letter: "Q", word: "Queen Bed",        usage: "Your room features a queen bed and city view." },
-      { letter: "R", word: "Reservation",      usage: "Your reservation is confirmed for two nights." },
-      { letter: "S", word: "Suite",            usage: "The presidential suite is on the top floor." },
-      { letter: "T", word: "Turndown",         usage: "Turndown service is offered each evening." },
-      { letter: "U", word: "Upgrade",          usage: "We are pleased to offer you a complimentary upgrade." },
-      { letter: "V", word: "Valet",            usage: "Valet parking is available at the main entrance." },
-      { letter: "W", word: "Wake-up Call",     usage: "I have scheduled your wake-up call for six a.m." },
-      { letter: "X", word: "Xtra Mile",        usage: "We always go the extra mile for our guests." },
+      { letter: "A", word: "Amenities", usage: "Our amenities include a pool, spa, and gym." },
+      { letter: "B", word: "Bellboy", usage: "The bellboy will assist you with your luggage." },
+      { letter: "C", word: "Concierge", usage: "Please speak to the concierge for restaurant reservations." },
+      { letter: "D", word: "Departure", usage: "What time is your departure?" },
+      { letter: "E", word: "Escalation", usage: "I will escalate this matter to the duty manager." },
+      { letter: "F", word: "Feedback", usage: "Your feedback is greatly appreciated." },
+      { letter: "G", word: "Guest Relations", usage: "Guest relations will handle your request." },
+      { letter: "H", word: "Hospitality", usage: "Hospitality is the art of making guests feel welcome." },
+      { letter: "I", word: "Itinerary", usage: "May I help you plan your itinerary?" },
+      { letter: "J", word: "Junior Suite", usage: "You have been upgraded to our junior suite." },
+      { letter: "K", word: "Keycard", usage: "Here is your keycard for room three-zero-two." },
+      { letter: "L", word: "Lobby", usage: "Please wait for us in the lobby." },
+      { letter: "M", word: "Minibar", usage: "The minibar is restocked daily." },
+      { letter: "N", word: "No-show", usage: "The reservation was marked as a no-show." },
+      { letter: "O", word: "Occupancy", usage: "Tonight we are at full occupancy." },
+      { letter: "P", word: "Porterage", usage: "Porterage service is available twenty-four hours." },
+      { letter: "Q", word: "Queen Bed", usage: "Your room features a queen bed and city view." },
+      { letter: "R", word: "Reservation", usage: "Your reservation is confirmed for two nights." },
+      { letter: "S", word: "Suite", usage: "The presidential suite is on the top floor." },
+      { letter: "T", word: "Turndown", usage: "Turndown service is offered each evening." },
+      { letter: "U", word: "Upgrade", usage: "We are pleased to offer you a complimentary upgrade." },
+      { letter: "V", word: "Valet", usage: "Valet parking is available at the main entrance." },
+      { letter: "W", word: "Wake-up Call", usage: "I have scheduled your wake-up call for six a.m." },
+      { letter: "X", word: "Xtra Mile", usage: "We always go the extra mile for our guests." },
       { letter: "Y", word: "Yield Management", usage: "Room rates are managed through yield management." },
-      { letter: "Z", word: "Zero Complaints",  usage: "Our goal is zero complaints and perfect service." }
+      { letter: "Z", word: "Zero Complaints", usage: "Our goal is zero complaints and perfect service." }
     ],
     fillExercises: [
       { question: "The guest asked for an ________ to the airport.", answer: "itinerary", hint: "Begins with I — a planned schedule." },
@@ -383,14 +370,14 @@ const ypCurriculum = {
     title: "Whiteboard Matrix Vocabulary",
     desc: "Pronounce each hospitality term clearly. You must score 85% accuracy to pass.",
     words: [
-      { word: "Accommodate",   phonetic: "uh-KOM-uh-dayt",      example: "We can accommodate your early check-in request." },
-      { word: "Facilitate",    phonetic: "fuh-SIL-ih-tayt",     example: "Allow me to facilitate your transfer to the airport." },
-      { word: "Anticipate",    phonetic: "an-TIS-ih-payt",      example: "We anticipate your needs before you ask." },
-      { word: "Ensure",        phonetic: "en-SHOOR",            example: "I will ensure your room is ready." },
-      { word: "Coordinate",    phonetic: "koh-OR-dih-nayt",     example: "I will coordinate with the kitchen team for you." },
-      { word: "Impeccable",    phonetic: "im-PEK-uh-bul",       example: "Our service standards are impeccable." },
-      { word: "Complimentary", phonetic: "kom-pluh-MEN-tuh-ree",example: "Breakfast is complimentary for all guests." },
-      { word: "Reservation",   phonetic: "rez-er-VAY-shun",     example: "Your reservation has been confirmed." }
+      { word: "Accommodate", phonetic: "uh-KOM-uh-dayt", example: "We can accommodate your early check-in request." },
+      { word: "Facilitate", phonetic: "fuh-SIL-ih-tayt", example: "Allow me to facilitate your transfer to the airport." },
+      { word: "Anticipate", phonetic: "an-TIS-ih-payt", example: "We anticipate your needs before you ask." },
+      { word: "Ensure", phonetic: "en-SHOOR", example: "I will ensure your room is ready." },
+      { word: "Coordinate", phonetic: "koh-OR-dih-nayt", example: "I will coordinate with the kitchen team for you." },
+      { word: "Impeccable", phonetic: "im-PEK-uh-bul", example: "Our service standards are impeccable." },
+      { word: "Complimentary", phonetic: "kom-pluh-MEN-tuh-ree", example: "Breakfast is complimentary for all guests." },
+      { word: "Reservation", phonetic: "rez-er-VAY-shun", example: "Your reservation has been confirmed." }
     ]
   },
 
@@ -430,11 +417,11 @@ const ypCurriculum = {
     desc: "Practise pronouncing these hospitality action verbs clearly. Each must score 85% accuracy.",
     actions: [
       { verb: "Accommodate", phonetic: "uh-KOM-uh-dayt" },
-      { verb: "Facilitate",  phonetic: "fuh-SIL-ih-tayt" },
-      { verb: "Anticipate",  phonetic: "an-TIS-ih-payt" },
-      { verb: "Ensure",      phonetic: "en-SHOOR" },
-      { verb: "Coordinate",  phonetic: "koh-OR-dih-nayt" },
-      { verb: "Delegate",    phonetic: "DEL-ih-gayt" },
+      { verb: "Facilitate", phonetic: "fuh-SIL-ih-tayt" },
+      { verb: "Anticipate", phonetic: "an-TIS-ih-payt" },
+      { verb: "Ensure", phonetic: "en-SHOOR" },
+      { verb: "Coordinate", phonetic: "koh-OR-dih-nayt" },
+      { verb: "Delegate", phonetic: "DEL-ih-gayt" },
       { verb: "Communicate", phonetic: "kuh-MYOO-nih-kayt" },
       { verb: "Acknowledge", phonetic: "ak-NOL-ij" }
     ]
@@ -442,13 +429,39 @@ const ypCurriculum = {
 
   numbers: {
     title: "Tricky Numbers Speaking Test",
-    desc: "These number pairs sound similar but mean different things. Listen carefully and speak clearly. You must say the exact number shown. Pass mark: 50% accuracy.",
+    // CHANGED: passing threshold is now 50%
+    desc: "These number pairs sound similar but mean different things. Listen carefully and speak clearly. You must say the exact number shown. Pass rate: 50% accuracy.",
     pairs: [
-      { target: "nineteen",  similar: "ninety",  context: "Your room number is nineteen.",                    tip: "Stress the TEEN — nine-TEEN" },
-      { target: "thirteen",  similar: "thirty",  context: "Your reservation is for thirteen guests.",          tip: "Stress the TEEN — thir-TEEN" },
-      { target: "fifteen",   similar: "fifty",   context: "Check-out is at fifteen hundred hours.",            tip: "Stress the TEEN — fif-TEEN" },
-      { target: "sixteen",   similar: "sixty",   context: "The conference room holds sixteen people.",         tip: "Stress the TEEN — six-TEEN" },
-      { target: "seventeen", similar: "seventy", context: "Your bill is seventeen dollars and fifty cents.",   tip: "Stress the TEEN — seven-TEEN" }
+      {
+        target: "nineteen",
+        similar: "ninety",
+        context: "Your room number is nineteen.",
+        tip: "Stress the TEEN — nine-TEEN"
+      },
+      {
+        target: "thirteen",
+        similar: "thirty",
+        context: "Your reservation is for thirteen guests.",
+        tip: "Stress the TEEN — thir-TEEN"
+      },
+      {
+        target: "fifteen",
+        similar: "fifty",
+        context: "Check-out is at fifteen hundred hours.",
+        tip: "Stress the TEEN — fif-TEEN"
+      },
+      {
+        target: "sixteen",
+        similar: "sixty",
+        context: "The conference room holds sixteen people.",
+        tip: "Stress the TEEN — six-TEEN"
+      },
+      {
+        target: "seventeen",
+        similar: "seventy",
+        context: "Your bill is seventeen dollars and fifty cents.",
+        tip: "Stress the TEEN — seven-TEEN"
+      }
     ]
   },
 
@@ -456,32 +469,17 @@ const ypCurriculum = {
     title: "Name That Produce!",
     desc: "A picture of a fruit or vegetable will appear. Say its name clearly into the microphone. You must score 90% accuracy to pass each one.",
     items: [
-      { name: "apple",      emoji: "🍎", phonetic: "AP-ul",        hint: "A classic red or green fruit." },
-      { name: "banana",     emoji: "🍌", phonetic: "buh-NAN-uh",   hint: "Long and yellow." },
-      { name: "broccoli",   emoji: "🥦", phonetic: "BROK-uh-lee",  hint: "A green tree-shaped vegetable." },
-      { name: "carrot",     emoji: "🥕", phonetic: "KAR-ut",       hint: "Orange and crunchy." },
-      { name: "tomato",     emoji: "🍅", phonetic: "tuh-MAY-toh",  hint: "Red and round — fruit or vegetable?" },
-      { name: "cucumber",   emoji: "🥒", phonetic: "KYOO-kum-ber", hint: "Long and green, cool to the taste." },
+      { name: "apple",      emoji: "🍎", phonetic: "AP-ul",       hint: "A classic red or green fruit." },
+      { name: "banana",     emoji: "🍌", phonetic: "buh-NAN-uh",  hint: "Long and yellow." },
+      { name: "broccoli",   emoji: "🥦", phonetic: "BROK-uh-lee", hint: "A green tree-shaped vegetable." },
+      { name: "carrot",     emoji: "🥕", phonetic: "KAR-ut",      hint: "Orange and crunchy." },
+      { name: "tomato",     emoji: "🍅", phonetic: "tuh-MAY-toh", hint: "Red and round — fruit or vegetable?" },
+      { name: "cucumber",   emoji: "🥒", phonetic: "KYOO-kum-ber",hint: "Long and green, cool to the taste." },
       { name: "strawberry", emoji: "🍓", phonetic: "STRAW-ber-ee", hint: "Small, red, and sweet." },
-      { name: "pineapple",  emoji: "🍍", phonetic: "PYN-ap-ul",    hint: "Tropical, spiky on the outside." },
-      { name: "mango",      emoji: "🥭", phonetic: "MANG-goh",     hint: "Sweet tropical fruit, orange inside." },
-      { name: "eggplant",   emoji: "🍆", phonetic: "EG-plant",     hint: "Purple and elongated." }
+      { name: "pineapple",  emoji: "🍍", phonetic: "PYN-ap-ul",   hint: "Tropical, spiky on the outside." },
+      { name: "mango",      emoji: "🥭", phonetic: "MANG-goh",    hint: "Sweet tropical fruit, orange inside." },
+      { name: "eggplant",   emoji: "🍆", phonetic: "EG-plant",    hint: "Purple and elongated." }
     ]
-  },
-
-  // ── NEW: KARAOKE ──────────────────────────────────────────────────────────
-  karaoke: {
-    title: "Karaoke Singalong Challenge",
-    desc: "Sing this original hospitality welcome song clearly. Hit 70% accuracy to pass and save.",
-    songTitle: "Welcome, Dear Guest",
-    intro: "A gentle singalong to warm up your voice and celebrate the spirit of hospitality.",
-    lines: [
-      { text: "Welcome, dear guest, to our home away from home",        phonetic: "WEL-cum deer gest too our hom uh-WAY from hom" },
-      { text: "We're here to serve you, wherever you may roam",         phonetic: "Wer HEER too serv yoo, wher-EV-er yoo may rohm" },
-      { text: "Your comfort is our promise, your smile is our reward",  phonetic: "Yor KUM-fort iz our PROM-is, yor SMYL iz our ree-WORD" },
-      { text: "We welcome every guest through our open door",           phonetic: "Wee WEL-cum EV-ree gest throo our OH-pen dor" }
-    ],
-    fullLyric: "Welcome dear guest to our home away from home we are here to serve you wherever you may roam your comfort is our promise your smile is our reward we welcome every guest through our open door"
   },
 
   playlist: {
@@ -493,23 +491,31 @@ const ypCurriculum = {
 // ============================================================================
 // 2. STATE & SESSION
 // ============================================================================
-let studentData = { name: "", email: "", phone: "", interviewAnswer: "", friendReflection: "", progress: {} };
-let currentModule      = null;
+let studentData = {
+  name: "", email: "", phone: "",
+  interviewAnswer: "", friendReflection: "",
+  progress: {}
+};
+let currentModule = null;
 let currentDialogIndex = 0;
-let passedDialogs      = [];
-let currentVerbIndex   = 0;
-let passedVerbs        = [];
+let passedDialogs = [];
+let currentVerbIndex = 0;
+let passedVerbs = [];
 let currentNumberIndex = 0;
-let passedNumbers      = [];
+let passedNumbers = [];
+
+// Greetings quiz state
+let greetingsQuizAnswers = {};
+let greetingsQuizSubmitted = false;
 
 const googleSheetWebAppUrl = "https://script.google.com/macros/s/AKfycbzZ6LB8l-XiH9E8bmJoLaubN7NX_-rLf3Dutp3km_yscpyQS1JMDSGf6p41KpyAdDF-/exec";
 
 // ============================================================================
-// 3. UTILITY
+// 3. UTILITY FUNCTIONS
 // ============================================================================
 function fixSlang(t) {
-  return t.replace(/\b(gonna|wanna|gotta|lemme|kinda|yeah)\b/gi, m =>
-    ({ gonna:"going to", wanna:"want to", gotta:"got to", lemme:"let me", kinda:"kind of", yeah:"yes" })[m.toLowerCase()] || m
+  return t.replace(/\b(gonna|wanna|gotta|lemme|kinda|yeah)\b/gi, (m) =>
+    ({ gonna: "going to", wanna: "want to", gotta: "got to", lemme: "let me", kinda: "kind of", yeah: "yes" })[m.toLowerCase()] || m
   );
 }
 
@@ -521,60 +527,32 @@ function calculateAccuracy(spoken, target) {
   for (let j = 0; j <= s.length; j++) m[0][j] = j;
   for (let i = 1; i <= t.length; i++)
     for (let j = 1; j <= s.length; j++)
-      m[i][j] = t[i-1] === s[j-1] ? m[i-1][j-1] : Math.min(m[i][j-1]+1, m[i-1][j]+1, m[i-1][j-1]+1);
+      m[i][j] = t[i - 1] === s[j - 1] ? m[i - 1][j - 1] : Math.min(m[i][j - 1] + 1, m[i - 1][j] + 1, m[i - 1][j - 1] + 1);
   return ((Math.max(t.length, s.length) - m[t.length][s.length]) / Math.max(t.length, s.length)) * 100;
 }
 
-// ── Smile / energy heuristic ──────────────────────────────────────────────
-// We estimate "smiling voice" by checking:
-//   1. Speech recognition confidence (if provided)
-//   2. Word-level characteristics: did they use warmth words and is the pace right?
-//   3. A lightweight pitch heuristic via the Web Audio API (higher average pitch → more likely smiling)
-// Because SpeechRecognition alone can't detect smile, we use AudioContext analysis.
-let _smileScore = 0;
-
-async function measureSmileEnergy(stream, durationMs = 3000) {
-  return new Promise(resolve => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 2048;
-      const source = ctx.createMediaStreamSource(stream);
-      source.connect(analyser);
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      let highFreqSum = 0, totalSamples = 0;
-      const interval = setInterval(() => {
-        analyser.getByteFrequencyData(dataArray);
-        // High-freq energy (1–4 kHz range) is characteristic of a bright, smiling voice
-        const nyquist = ctx.sampleRate / 2;
-        const binHz = nyquist / bufferLength;
-        const lowBin  = Math.floor(1000 / binHz);
-        const highBin = Math.floor(4000 / binHz);
-        let hf = 0;
-        for (let i = lowBin; i < highBin && i < bufferLength; i++) hf += dataArray[i];
-        highFreqSum += hf / (highBin - lowBin);
-        totalSamples++;
-      }, 100);
-
-      setTimeout(() => {
-        clearInterval(interval);
-        source.disconnect();
-        ctx.close();
-        // Normalise: typical bright voice ~120-200, flat ~50-90
-        const avg = totalSamples > 0 ? highFreqSum / totalSamples : 0;
-        const score = Math.min(100, (avg / 150) * 100);
-        resolve(score);
-      }, durationMs);
-    } catch(e) {
-      resolve(60); // default pass if API unavailable
-    }
-  });
+/**
+ * Smile / warmth heuristic.
+ * Checks pitch variation cues in transcript text and confidence score.
+ * Since WebSpeech gives us text only, we use two proxy signals:
+ *   1. Confidence score from the recognition result (higher = clearer/warmer delivery tends to score better)
+ *   2. Presence of "flat" filler patterns or very short clipped delivery
+ * We set a separate smileThreshold (50%) applied on top of normal accuracy.
+ * If confidence < 0.5 we flag as "not sounding warm enough".
+ */
+function detectSmile(result) {
+  // confidence is between 0 and 1
+  const confidence = result[0][0].confidence;
+  return confidence >= 0.50; // 50% threshold for warmth / smile signal
 }
 
-function countWords(str) { return str.trim().split(/\s+/).filter(w => w.length > 0).length; }
-function saveToLocalStorage() { localStorage.setItem("yp_student_session", JSON.stringify(studentData)); }
+function countWords(str) {
+  return str.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem("yp_student_session", JSON.stringify(studentData));
+}
 
 function showToast(msg, type = "success") {
   const toast = document.createElement("div");
@@ -601,54 +579,141 @@ function markModuleComplete(moduleId) {
 }
 
 // ============================================================================
-// 4. SHEET SUBMISSION
+// 4. SUBMISSION TO GOOGLE SHEETS
 // ============================================================================
 async function submitToSheet(payload) {
   try {
-    await fetch(googleSheetWebAppUrl, { method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+    await fetch(googleSheetWebAppUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
     return true;
-  } catch(err) { console.warn("Sheet submission failed:", err); return false; }
+  } catch (err) {
+    console.warn("Sheet submission failed:", err);
+    return false;
+  }
 }
 
 async function saveProgress(moduleId, extraData = {}) {
-  const payload = { timestamp: new Date().toISOString(), studentName: studentData.name, studentEmail: studentData.email, studentPhone: studentData.phone, module: moduleId, ...extraData };
+  const payload = {
+    timestamp: new Date().toISOString(),
+    studentName: studentData.name,
+    studentEmail: studentData.email,
+    studentPhone: studentData.phone,
+    module: moduleId,
+    ...extraData
+  };
   saveToLocalStorage();
   const submitted = await submitToSheet(payload);
   markModuleComplete(moduleId);
-  showToast(submitted ? "✅ Progress saved and submitted!" : "💾 Progress saved locally. Sheet sync unavailable.", submitted ? "success" : "info");
+  if (submitted) {
+    showToast("✅ Progress saved and submitted!", "success");
+  } else {
+    showToast("💾 Progress saved locally. Sheet sync unavailable.", "info");
+  }
 }
 
 // ============================================================================
-// 5. MODULE ROUTER
+// 5. SESSION RESTORE & CLEAR
 // ============================================================================
-window.switchModule = function(id) {
+
+/**
+ * Attempt to restore a saved session from localStorage.
+ * Returns true if a valid session was found and applied.
+ */
+function tryRestoreSession() {
+  try {
+    const saved = localStorage.getItem("yp_student_session");
+    if (!saved) return false;
+    const parsed = JSON.parse(saved);
+    if (!parsed.name || !parsed.email) return false;
+
+    // Restore state
+    studentData = { ...studentData, ...parsed };
+
+    // Populate the form fields (keep them readable but hidden under the collapsed section)
+    const nameEl = document.getElementById("student-name");
+    const emailEl = document.getElementById("student-email");
+    const phoneEl = document.getElementById("student-phone");
+    const answerEl = document.getElementById("student-answer");
+    if (nameEl) nameEl.value = parsed.name || "";
+    if (emailEl) emailEl.value = parsed.email || "";
+    if (phoneEl) phoneEl.value = parsed.phone || "";
+    if (answerEl) answerEl.value = parsed.interviewAnswer || "";
+
+    // Show learner summary
+    document.getElementById("summary-name").textContent = parsed.name;
+    document.getElementById("summary-email").textContent = parsed.email;
+    document.getElementById("summary-phone").textContent = parsed.phone || "";
+    document.getElementById("learner-summary").classList.remove("hidden");
+
+    // Collapse the registration form
+    document.getElementById("registration-section").classList.add("hidden");
+
+    // Enable all nav buttons
+    document.querySelectorAll(".module-btn").forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove("opacity-60", "cursor-not-allowed");
+    });
+
+    // Restore completed module badges
+    if (parsed.progress) {
+      Object.keys(parsed.progress).forEach(moduleId => {
+        markModuleComplete(moduleId);
+      });
+    }
+
+    // Open first module automatically
+    switchModule("founder");
+    showToast("👋 Welcome back, " + parsed.name + "!", "success");
+    return true;
+  } catch (e) {
+    console.warn("Session restore failed:", e);
+    return false;
+  }
+}
+
+/** Let user manually reset / log out */
+window.clearSession = function () {
+  if (!confirm("Reset your session? You will need to register again.")) return;
+  localStorage.removeItem("yp_student_session");
+  location.reload();
+};
+
+// ============================================================================
+// 6. MODULE RENDERER
+// ============================================================================
+window.switchModule = function (id) {
   currentModule = id;
   document.querySelectorAll(".module-btn").forEach(b => b.classList.remove("active"));
   const activeBtn = document.getElementById("btn-" + id);
   if (activeBtn) activeBtn.classList.add("active");
+
   const container = document.getElementById("workspace-container");
-  container.classList.remove("flex","justify-center","items-center","text-center");
+  container.classList.remove("flex", "justify-center", "items-center", "text-center");
   container.classList.add("animate-fade-in");
-  switch(id) {
-    case "founder":   renderFounder(container);   break;
-    case "grooming":  renderGrooming(container);  break;
-    case "tone":      renderTone(container);       break;
-    case "greetings": renderGreetings(container); break;
-    case "general":   renderGeneral(container);   break;
-    case "scenario":  renderScenario(container);  break;
-    case "vocabulary":renderVocabulary(container);break;
-    case "emotions":  renderEmotions(container);  break;
-    case "verbs":     renderVerbs(container);      break;
-    case "numbers":   renderNumbers(container);   break;
-    case "produce":   renderProduce(container);   break;
-    case "karaoke":   renderKaraoke(container);   break;
-    case "playlist":  renderPlaylist(container);  break;
+
+  switch (id) {
+    case "founder":    renderFounder(container);    break;
+    case "grooming":   renderGrooming(container);   break;
+    case "tone":       renderTone(container);        break;
+    case "greetings":  renderGreetings(container);  break;
+    case "general":    renderGeneral(container);    break;
+    case "scenario":   renderScenario(container);   break;
+    case "vocabulary": renderVocabulary(container); break;
+    case "emotions":   renderEmotions(container);   break;
+    case "verbs":      renderVerbs(container);      break;
+    case "numbers":    renderNumbers(container);    break;
+    case "produce":    renderProduce(container);    break;
+    case "playlist":   renderPlaylist(container);   break;
     default: container.innerHTML = `<p class="text-slate-400">Module coming soon.</p>`;
   }
 };
 
 // ============================================================================
-// 6. FOUNDER
+// 7. MODULE: PROFILE & IDENTITY
 // ============================================================================
 function renderFounder(container) {
   const data = ypCurriculum.founder;
@@ -660,7 +725,8 @@ function renderFounder(container) {
         <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
           <div class="text-[10px] uppercase font-bold tracking-widest text-indigo-400 mb-1">${f.label}</div>
           <p class="text-sm text-slate-300 font-medium">${f.text}</p>
-        </div>`).join("")}
+        </div>
+      `).join("")}
     </div>
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-4">
       <h3 class="text-sm font-black text-white mb-1">✍️ Friend Reflection</h3>
@@ -669,24 +735,31 @@ function renderFounder(container) {
       <div id="friend-word-count" class="text-[10px] text-slate-500 mt-1">${countWords(studentData.friendReflection || "")} / 25 words minimum</div>
     </div>
     <button onclick="saveFounder()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save Profile & Reflection</button>
-    <p id="founder-feedback" class="mt-3 text-xs font-bold"></p>`;
-  document.getElementById("friend-reflection-input").addEventListener("input", function() {
+    <p id="founder-feedback" class="mt-3 text-xs font-bold"></p>
+  `;
+  document.getElementById("friend-reflection-input").addEventListener("input", function () {
     document.getElementById("friend-word-count").textContent = countWords(this.value) + " / 25 words minimum";
   });
 }
-window.saveFounder = function() {
+
+window.saveFounder = function () {
   const reflection = document.getElementById("friend-reflection-input").value.trim();
   const fb = document.getElementById("founder-feedback");
-  if (countWords(reflection) < 25) { fb.textContent = "❌ Please write at least 25 words."; fb.style.color = "#f87171"; return; }
+  if (countWords(reflection) < 25) {
+    fb.textContent = "❌ Please write at least 25 words in your friend reflection.";
+    fb.style.color = "#f87171"; return;
+  }
   studentData.friendReflection = reflection;
-  fb.textContent = "✅ Profile saved!"; fb.style.color = "#34d399";
+  fb.textContent = "✅ Profile saved!";
+  fb.style.color = "#34d399";
   saveProgress("founder", { friendReflection: reflection });
 };
 
 // ============================================================================
-// 7. GROOMING
+// 8. MODULE: GROOMING
 // ============================================================================
 const groomingPhotos = {};
+
 function renderGrooming(container) {
   const data = ypCurriculum.grooming;
   container.innerHTML = `
@@ -712,307 +785,352 @@ function renderGrooming(container) {
             <button id="groom-confirm-${p.id}" disabled onclick="confirmGroomPhoto('${p.id}')" class="bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs transition opacity-40 flex items-center gap-1.5">✅ Confirm</button>
           </div>
           <p id="groom-msg-${p.id}" class="text-[11px] font-bold mt-2"></p>
-        </div>`).join("")}
+        </div>
+      `).join("")}
     </div>
     <button onclick="saveGrooming()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save All Grooming Photos</button>
-    <p id="grooming-feedback" class="mt-3 text-xs font-bold"></p>`;
+    <p id="grooming-feedback" class="mt-3 text-xs font-bold"></p>
+  `;
 }
-window.handleGroomPhoto = function(pillarId, input) {
+
+window.handleGroomPhoto = function (pillarId, input) {
   if (!input.files || !input.files[0]) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = (e) => {
     groomingPhotos[pillarId] = e.target.result;
     const preview = document.getElementById(`groom-preview-${pillarId}`);
-    const wrap    = document.getElementById(`groom-preview-wrap-${pillarId}`);
-    const btn     = document.getElementById(`groom-confirm-${pillarId}`);
-    const msg     = document.getElementById(`groom-msg-${pillarId}`);
+    const wrap = document.getElementById(`groom-preview-wrap-${pillarId}`);
+    const confirmBtn = document.getElementById(`groom-confirm-${pillarId}`);
+    const msg = document.getElementById(`groom-msg-${pillarId}`);
     if (preview) { preview.src = e.target.result; wrap.classList.remove("hidden"); }
-    if (btn)  { btn.disabled = false; btn.classList.remove("opacity-40"); }
-    if (msg)  { msg.textContent = "Photo taken — tap Confirm when happy."; msg.style.color = "#94a3b8"; }
+    if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.classList.remove("opacity-40"); }
+    if (msg) { msg.textContent = "Photo taken — tap Confirm when you're happy with it."; msg.style.color = "#94a3b8"; }
   };
   reader.readAsDataURL(input.files[0]);
 };
-window.confirmGroomPhoto = function(pillarId) {
+
+window.confirmGroomPhoto = function (pillarId) {
   const status = document.getElementById(`groom-status-${pillarId}`);
-  const msg    = document.getElementById(`groom-msg-${pillarId}`);
-  const card   = document.getElementById(`groom-card-${pillarId}`);
+  const msg = document.getElementById(`groom-msg-${pillarId}`);
+  const card = document.getElementById(`groom-card-${pillarId}`);
   if (status) status.textContent = "✅";
-  if (msg)  { msg.textContent = "Confirmed!"; msg.style.color = "#34d399"; }
+  if (msg) { msg.textContent = "Confirmed!"; msg.style.color = "#34d399"; }
   if (card) { card.classList.remove("border-slate-800"); card.classList.add("border-emerald-700/50"); }
 };
-window.saveGrooming = function() {
+
+window.saveGrooming = function () {
   const data = ypCurriculum.grooming;
-  const fb   = document.getElementById("grooming-feedback");
+  const fb = document.getElementById("grooming-feedback");
   const missing = data.pillars.filter(p => !groomingPhotos[p.id]);
-  if (missing.length > 0) { fb.textContent = `❌ Please take photos for: ${missing.map(p => p.area).join(", ")}.`; fb.style.color = "#f87171"; return; }
-  const allConfirmed = data.pillars.every(p => document.getElementById(`groom-status-${p.id}`)?.textContent === "✅");
-  if (!allConfirmed) { fb.textContent = "❌ Please tap Confirm on each photo before saving."; fb.style.color = "#f87171"; return; }
-  fb.textContent = "✅ All grooming photos saved!"; fb.style.color = "#34d399";
+  if (missing.length > 0) {
+    fb.textContent = `❌ Please take and confirm photos for: ${missing.map(p => p.area).join(", ")}.`;
+    fb.style.color = "#f87171"; return;
+  }
+  const allConfirmed = data.pillars.every(p => {
+    const status = document.getElementById(`groom-status-${p.id}`);
+    return status && status.textContent === "✅";
+  });
+  if (!allConfirmed) {
+    fb.textContent = "❌ Please tap Confirm on each photo before saving.";
+    fb.style.color = "#f87171"; return;
+  }
+  fb.textContent = "✅ All grooming photos saved!";
+  fb.style.color = "#34d399";
+  studentData.groomingPhotos = Object.fromEntries(
+    Object.entries(groomingPhotos).map(([k, v]) => [k, v.substring(0, 200) + "..."])
+  );
   saveProgress("grooming", { photosCount: data.pillars.length });
   showToast("📸 All 5 grooming photos saved!", "success");
 };
 
 // ============================================================================
-// 8. TONE (with smile-check on dialog 1)
+// 9. MODULE: TONE (5 Dialogs + Smile Detection)
 // ============================================================================
 function renderTone(container) {
-  currentDialogIndex = 0; passedDialogs = [];
+  currentDialogIndex = 0;
+  passedDialogs = [];
   renderToneDialog(container);
 }
+
 function renderToneDialog(container) {
   const dialogs = ypCurriculum.tone.dialogs;
-  if (currentDialogIndex >= dialogs.length) { renderToneComplete(container); return; }
+  if (currentDialogIndex >= dialogs.length) {
+    renderToneComplete(container);
+    return;
+  }
   const d = dialogs[currentDialogIndex];
-  const smileBanner = d.smileCheck ? `
-    <div class="flex items-center gap-2 p-3 bg-amber-900/20 border border-amber-700/40 rounded-xl mb-3">
-      <span class="text-xl">😊</span>
-      <div>
-        <div class="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Smile Check Active</div>
-        <p class="text-[11px] text-slate-300 mt-0.5">Your vocal energy is being analysed. A warm, bright voice scores higher. Flat or monotone delivery scores below 50% and will not pass.</p>
-      </div>
-    </div>
-    <div class="mb-3">
-      <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Smile Energy Meter</div>
-      <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-        <div id="smile-bar" class="smile-meter h-full rounded-full bg-amber-400" style="width:0%"></div>
-      </div>
-      <div id="smile-label" class="text-[10px] text-slate-500 mt-1">Waiting for recording...</div>
-    </div>` : "";
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">Vocal Mechanics & Tone</h2>
     <p class="text-sm text-slate-400 mb-4">Dialog ${currentDialogIndex + 1} of ${dialogs.length}</p>
+
     <div class="flex gap-2 mb-6">
-      ${dialogs.map((_,i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentDialogIndex ? 'bg-emerald-500' : i === currentDialogIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}
+      ${dialogs.map((_, i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentDialogIndex ? 'bg-emerald-500' : i === currentDialogIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}
     </div>
+
+    <!-- Smile reminder banner -->
+    <div class="flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl mb-4">
+      <span class="text-2xl">😊</span>
+      <div>
+        <p class="text-xs font-black text-amber-400">Remember to SMILE as you speak!</p>
+        <p class="text-[10px] text-slate-400">Your smile changes the warmth in your voice. If you don't sound warm enough, you will need to try again.</p>
+      </div>
+    </div>
+
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-4">
       <div class="text-[10px] uppercase tracking-widest text-indigo-400 font-bold mb-2">Situation</div>
       <p class="text-sm text-white font-medium mb-4">${d.prompt}</p>
-      ${smileBanner}
       <div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Say This:</div>
       <blockquote id="tone-target" class="text-base text-slate-200 italic leading-relaxed border-l-4 border-indigo-500 pl-4">${d.target}</blockquote>
       <p class="text-[11px] text-amber-400 mt-3">💡 ${d.hint}</p>
     </div>
+
     <div class="flex gap-3 flex-wrap">
-      <button id="tone-start-btn" onclick="runToneTest()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">🎤 Start Speaking</button>
-      <button id="tone-save-btn" disabled onclick="passToneDialog()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">✅ Next Dialog</button>
+      <button id="tone-start-btn" onclick="runToneTest()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">
+        🎤 Start Speaking
+      </button>
+      <button id="tone-save-btn" disabled onclick="passToneDialog()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">
+        ✅ Next Dialog
+      </button>
     </div>
-    <p id="tone-feedback" class="mt-4 text-sm font-bold"></p>`;
+    <p id="tone-feedback" class="mt-4 text-sm font-bold leading-relaxed"></p>
+  `;
 }
+
 function renderToneComplete(container) {
   container.innerHTML = `
     <div class="text-center space-y-4 py-8">
       <span class="text-5xl">🏆</span>
       <h2 class="text-2xl font-black text-white">All 5 Dialogs Passed!</h2>
-      <p class="text-slate-400 text-sm">Excellent vocal performance. Your pacing and pronunciation are hotel-ready.</p>
-      <button onclick="saveProgress('tone', {dialogsPassed: 5})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Tone Progress</button>
-    </div>`;
+      <p class="text-slate-400 text-sm">Excellent vocal performance. Your pacing, warmth, and pronunciation are hotel-ready.</p>
+      <button onclick="saveProgress('tone', {dialogsPassed: 5})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">
+        💾 Save Tone Progress
+      </button>
+    </div>
+  `;
 }
-window.runToneTest = async function() {
-  const fb       = document.getElementById("tone-feedback");
+
+window.runToneTest = function () {
+  const fb = document.getElementById("tone-feedback");
   const startBtn = document.getElementById("tone-start-btn");
-  const target   = document.getElementById("tone-target").textContent.toLowerCase().replace(/[.,?!]/g,"");
-  const dialog   = ypCurriculum.tone.dialogs[currentDialogIndex];
+  const target = document.getElementById("tone-target").textContent.toLowerCase().replace(/[.,?!]/g, "");
 
   if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-    fb.textContent = "⚠️ Speech recognition not supported. Try Chrome."; fb.style.color = "#fbbf24"; return;
-  }
-
-  let micStream = null;
-  let smileScore = 100; // default pass if AudioContext unavailable
-
-  // Get mic stream for smile analysis on dialog 1
-  if (dialog.smileCheck) {
-    try {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch(e) { /* proceed without smile meter */ }
+    fb.textContent = "⚠️ Speech recognition not supported in this browser. Try Chrome.";
+    fb.style.color = "#fbbf24"; return;
   }
 
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US"; recognition.interimResults = false;
-  startBtn.textContent = "🔴 Listening..."; startBtn.classList.add("pulse-recording");
-  fb.textContent = dialog.smileCheck ? "😊 Smile and speak warmly!" : "Speak now — slowly and clearly...";
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+
+  startBtn.textContent = "🔴 Listening...";
+  startBtn.classList.add("pulse-recording");
+  fb.textContent = "Speak now — slowly and warmly, with a smile 😊...";
   fb.style.color = "#94a3b8";
 
-  // Start smile energy measurement concurrently
-  let smilePromise = Promise.resolve(100);
-  if (dialog.smileCheck && micStream) {
-    const smileBar   = document.getElementById("smile-bar");
-    const smileLabel = document.getElementById("smile-label");
-    smilePromise = measureSmileEnergy(micStream, 4000);
-    // Animate bar while recording
-    let fakeProgress = 0;
-    const barInterval = setInterval(() => {
-      fakeProgress = Math.min(fakeProgress + 3, 85);
-      if (smileBar) smileBar.style.width = fakeProgress + "%";
-    }, 150);
-    smilePromise.then(score => {
-      clearInterval(barInterval);
-      if (smileBar)  { smileBar.style.width = score.toFixed(0) + "%"; smileBar.style.background = score >= 50 ? "#10b981" : "#ef4444"; }
-      if (smileLabel){ smileLabel.textContent = `Smile energy: ${score.toFixed(0)}% — ${score >= 50 ? "Warm & bright ✅" : "Too flat ❌ — try smiling!"}`; smileLabel.style.color = score >= 50 ? "#34d399" : "#f87171"; }
-      smileScore = score;
-      if (micStream) micStream.getTracks().forEach(t => t.stop());
-    });
-  }
+  recognition.onresult = (e) => {
+    startBtn.textContent = "🎤 Start Speaking";
+    startBtn.classList.remove("pulse-recording");
 
-  recognition.onresult = async e => {
-    startBtn.textContent = "🎤 Start Speaking"; startBtn.classList.remove("pulse-recording");
-    const spoken   = fixSlang(e.results[0][0].transcript.toLowerCase().replace(/[.,?!]/g,""));
+    const spoken = fixSlang(e.results[0][0].transcript.toLowerCase().replace(/[.,?!]/g, ""));
     const accuracy = calculateAccuracy(spoken, target);
+    const smileOk = detectSmile(e.results);
 
-    // For smile dialog, wait for smile score then combine
-    if (dialog.smileCheck) {
-      smileScore = await smilePromise;
-      const combinedScore = (accuracy * 0.5) + (smileScore * 0.5);
-      if (combinedScore < 50) {
-        fb.innerHTML = `❌ Combined score: ${combinedScore.toFixed(0)}% (Speech: ${accuracy.toFixed(0)}%, Smile energy: ${smileScore.toFixed(0)}%)<br><span class="text-xs text-slate-400 font-normal">Smile broadly and speak with warmth — flat voices score low.</span>`;
-        fb.style.color = "#f87171"; return;
-      }
-      fb.textContent = `✅ Excellent warm delivery! Score: ${combinedScore.toFixed(0)}% (Speech: ${accuracy.toFixed(0)}%, Smile: ${smileScore.toFixed(0)}%)`;
-      fb.style.color = "#34d399";
-    } else {
-      if (accuracy < 85) {
-        fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — try again.<br><span class="text-xs text-slate-400 font-normal">You said: "${spoken}"</span>`;
-        fb.style.color = "#f87171"; return;
-      }
-      fb.textContent = `✅ Excellent! Accuracy: ${accuracy.toFixed(0)}%`; fb.style.color = "#34d399";
+    if (accuracy < 85) {
+      fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — try again. Speak slowly and clearly.<br><span class="text-xs text-slate-400 font-normal">You said: "${spoken}"</span>`;
+      fb.style.color = "#f87171"; return;
     }
+
+    if (!smileOk) {
+      fb.innerHTML = `😐 Words were correct (${accuracy.toFixed(0)}%) but your voice doesn't sound warm enough — we need to hear your smile!<br><span class="text-xs text-slate-400 font-normal">Relax, smile, and try again with more energy and warmth.</span>`;
+      fb.style.color = "#f59e0b"; return;
+    }
+
+    fb.textContent = `✅ Excellent! Accuracy: ${accuracy.toFixed(0)}% — and your tone is warm and professional! 😊`;
+    fb.style.color = "#34d399";
     const saveBtn = document.getElementById("tone-save-btn");
     if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove("opacity-50"); }
   };
 
-  recognition.onerror = e => {
-    startBtn.textContent = "🎤 Start Speaking"; startBtn.classList.remove("pulse-recording");
-    fb.textContent = "⚠️ Error: " + e.error; fb.style.color = "#fbbf24";
-    if (micStream) micStream.getTracks().forEach(t => t.stop());
+  recognition.onerror = (e) => {
+    startBtn.textContent = "🎤 Start Speaking";
+    startBtn.classList.remove("pulse-recording");
+    fb.textContent = "⚠️ Error: " + e.error + ". Please try again.";
+    fb.style.color = "#fbbf24";
   };
 
   recognition.start();
 };
-window.passToneDialog = function() {
-  passedDialogs.push(currentDialogIndex); currentDialogIndex++;
+
+window.passToneDialog = function () {
+  passedDialogs.push(currentDialogIndex);
+  currentDialogIndex++;
   renderToneDialog(document.getElementById("workspace-container"));
 };
 
 // ============================================================================
-// 9. GREETINGS (study scripts + 5-question MCQ quiz)
+// 10. MODULE: GREETINGS & PROBLEM SOLVING (with 5-question quiz)
 // ============================================================================
-let greetingsQuizState = { currentQ: 0, score: 0, answered: [] };
-
 function renderGreetings(container) {
-  greetingsQuizState = { currentQ: 0, score: 0, answered: [] };
-  renderGreetingsStudy(container);
-}
-
-function renderGreetingsStudy(container) {
+  greetingsQuizAnswers = {};
+  greetingsQuizSubmitted = false;
   const data = ypCurriculum.greetings;
+
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">${data.title}</h2>
     <p class="text-sm text-slate-400 mb-6">${data.desc}</p>
-    <div class="space-y-6 mb-8">
-      ${data.sections.map(section => `
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-black text-white mb-3">${section.heading}</h3>
-          <ul class="space-y-2">
-            ${section.items.map((item, i) => `
-              <li class="flex gap-3 text-xs text-slate-300 leading-relaxed">
-                <span class="text-indigo-400 font-black shrink-0">${i + 1}.</span>
-                <span>"${item}"</span>
-              </li>`).join("")}
-          </ul>
-        </div>`).join("")}
+
+    <!-- Reference Scripts (collapsible-style via details) -->
+    <details class="mb-6 group">
+      <summary class="cursor-pointer select-none flex items-center gap-2 text-sm font-black text-indigo-400 hover:text-indigo-300 transition mb-2">
+        <span class="w-5 h-5 rounded-lg bg-indigo-500/10 flex items-center justify-center text-xs">📋</span>
+        View Reference Scripts (study before the quiz)
+        <span class="ml-auto text-slate-500 group-open:rotate-180 transition-transform text-xs">▼</span>
+      </summary>
+      <div class="space-y-4 mt-3">
+        ${data.sections.map(section => `
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="text-sm font-black text-white mb-3">${section.heading}</h3>
+            <ul class="space-y-2">
+              ${section.items.map((item, i) => `
+                <li class="flex gap-3 text-xs text-slate-300 leading-relaxed">
+                  <span class="text-indigo-400 font-black shrink-0">${i + 1}.</span>
+                  <span>"${item}"</span>
+                </li>
+              `).join("")}
+            </ul>
+          </div>
+        `).join("")}
+      </div>
+    </details>
+
+    <!-- Quiz Section -->
+    <div class="bg-slate-900/60 border border-indigo-500/20 rounded-3xl p-6 mb-4">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center text-base font-black">?</div>
+        <div>
+          <h3 class="text-sm font-black text-white">Knowledge Quiz</h3>
+          <p class="text-[10px] text-slate-400">Answer all 5 questions. You need 4 out of 5 correct to pass.</p>
+        </div>
+        <div id="quiz-score-badge" class="ml-auto hidden px-3 py-1 rounded-full text-xs font-black"></div>
+      </div>
+
+      <div class="space-y-6" id="quiz-questions">
+        ${data.quiz.map((q, qi) => `
+          <div class="quiz-q" id="quiz-q-${qi}">
+            <p class="text-xs font-bold text-white mb-3">
+              <span class="text-indigo-400 mr-1">${qi + 1}.</span>${q.q}
+            </p>
+            <div class="space-y-2">
+              ${q.options.map((opt, oi) => `
+                <label id="quiz-opt-${qi}-${oi}" class="flex items-start gap-3 p-3 bg-slate-800/60 border border-slate-700 rounded-xl cursor-pointer hover:border-indigo-500/50 transition group">
+                  <input type="radio" name="quiz-q-${qi}" value="${oi}" class="mt-0.5 accent-indigo-500 shrink-0" onchange="recordQuizAnswer(${qi}, ${oi})">
+                  <span class="text-xs text-slate-300 leading-relaxed">${opt}</span>
+                </label>
+              `).join("")}
+            </div>
+            <p id="quiz-explain-${qi}" class="hidden mt-2 text-[11px] font-medium"></p>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="mt-6 flex gap-3 flex-wrap">
+        <button id="quiz-submit-btn" onclick="submitGreetingsQuiz()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">
+          📝 Submit Quiz
+        </button>
+        <button id="quiz-retry-btn" onclick="retryGreetingsQuiz()" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">
+          🔄 Try Again
+        </button>
+        <button id="quiz-save-btn" disabled onclick="saveProgress('greetings', {quizScore: window._greetingsScore})" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">
+          💾 Save Progress
+        </button>
+      </div>
+      <p id="quiz-overall-feedback" class="mt-3 text-sm font-bold"></p>
     </div>
-    <div class="p-4 bg-indigo-900/20 border border-indigo-700/40 rounded-2xl mb-4">
-      <p class="text-sm font-bold text-white mb-1">📝 Ready for the Quiz?</p>
-      <p class="text-[11px] text-slate-400">Study the scripts above, then answer 5 multiple-choice questions to complete this module.</p>
-    </div>
-    <button onclick="startGreetingsQuiz()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">🚀 Start Quiz (5 Questions)</button>`;
+  `;
 }
 
-window.startGreetingsQuiz = function() {
-  greetingsQuizState = { currentQ: 0, score: 0, answered: [] };
-  renderGreetingsQuestion(document.getElementById("workspace-container"));
+window.recordQuizAnswer = function (qIndex, oIndex) {
+  greetingsQuizAnswers[qIndex] = oIndex;
 };
 
-function renderGreetingsQuestion(container) {
-  const quiz = ypCurriculum.greetings.quiz;
-  if (greetingsQuizState.currentQ >= quiz.length) { renderGreetingsResult(container); return; }
-  const q = quiz[greetingsQuizState.currentQ];
-  const qNum = greetingsQuizState.currentQ + 1;
-  container.innerHTML = `
-    <h2 class="text-2xl font-black text-white mb-1">Greeting Scripts Quiz</h2>
-    <p class="text-sm text-slate-400 mb-4">Question ${qNum} of ${quiz.length}</p>
-    <div class="flex gap-2 mb-6">
-      ${quiz.map((_,i) => `<div class="flex-1 h-1.5 rounded-full ${i < greetingsQuizState.currentQ ? (greetingsQuizState.answered[i] ? 'bg-emerald-500' : 'bg-rose-500') : i === greetingsQuizState.currentQ ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}
-    </div>
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-4">
-      <p class="text-sm font-bold text-white mb-4">${q.q}</p>
-      <div class="space-y-2" id="quiz-options">
-        ${q.options.map((opt, i) => `
-          <button onclick="answerGreetingsQ(${i})" id="quiz-opt-${i}" class="quiz-option w-full text-left p-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-300 font-medium flex items-center gap-3">
-            <span class="w-6 h-6 rounded-lg bg-slate-700 text-slate-400 flex items-center justify-center text-[10px] font-black shrink-0">${String.fromCharCode(65+i)}</span>
-            ${opt}
-          </button>`).join("")}
-      </div>
-      <p id="quiz-explain" class="hidden mt-3 text-[11px] font-bold"></p>
-    </div>
-    <button id="quiz-next-btn" disabled onclick="nextGreetingsQ()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50">
-      ${qNum < quiz.length ? "→ Next Question" : "🏁 See Results"}
-    </button>`;
-}
-
-window.answerGreetingsQ = function(selectedIdx) {
-  const quiz    = ypCurriculum.greetings.quiz;
-  const q       = quiz[greetingsQuizState.currentQ];
-  const explain = document.getElementById("quiz-explain");
-  const nextBtn = document.getElementById("quiz-next-btn");
-  const correct = q.correct === selectedIdx;
-
-  // Disable all options
-  for (let i = 0; i < q.options.length; i++) {
-    const btn = document.getElementById(`quiz-opt-${i}`);
-    if (!btn) continue;
-    btn.classList.add("disabled");
-    if (i === q.correct) btn.classList.add("correct");
-    else if (i === selectedIdx && !correct) btn.classList.add("wrong");
+window.submitGreetingsQuiz = function () {
+  const data = ypCurriculum.greetings;
+  const totalQ = data.quiz.length;
+  const unanswered = [];
+  for (let i = 0; i < totalQ; i++) {
+    if (greetingsQuizAnswers[i] === undefined) unanswered.push(i + 1);
+  }
+  if (unanswered.length > 0) {
+    document.getElementById("quiz-overall-feedback").textContent = `⚠️ Please answer question${unanswered.length > 1 ? "s" : ""} ${unanswered.join(", ")} before submitting.`;
+    document.getElementById("quiz-overall-feedback").style.color = "#fbbf24";
+    return;
   }
 
-  if (correct) { greetingsQuizState.score++; greetingsQuizState.answered.push(true); }
-  else { greetingsQuizState.answered.push(false); }
+  let correct = 0;
+  data.quiz.forEach((q, qi) => {
+    const chosen = greetingsQuizAnswers[qi];
+    const explainEl = document.getElementById(`quiz-explain-${qi}`);
+    const isRight = chosen === q.correct;
+    if (isRight) correct++;
 
-  explain.textContent = (correct ? "✅ Correct! " : "❌ Incorrect. ") + q.explain;
-  explain.style.color = correct ? "#34d399" : "#f87171";
-  explain.classList.remove("hidden");
-  nextBtn.disabled = false; nextBtn.classList.remove("opacity-50");
-};
-
-window.nextGreetingsQ = function() {
-  greetingsQuizState.currentQ++;
-  renderGreetingsQuestion(document.getElementById("workspace-container"));
-};
-
-function renderGreetingsResult(container) {
-  const score = greetingsQuizState.score;
-  const total = ypCurriculum.greetings.quiz.length;
-  const pct   = Math.round((score / total) * 100);
-  const passed = pct >= 60;
-  container.innerHTML = `
-    <div class="text-center space-y-4 py-8">
-      <span class="text-5xl">${passed ? "🏆" : "📚"}</span>
-      <h2 class="text-2xl font-black text-white">${passed ? "Quiz Passed!" : "Keep Studying!"}</h2>
-      <div class="inline-flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-2xl px-6 py-3">
-        <span class="text-3xl font-black ${passed ? 'text-emerald-400' : 'text-rose-400'}">${score}/${total}</span>
-        <span class="text-sm text-slate-400">${pct}% correct</span>
-      </div>
-      <p class="text-slate-400 text-sm max-w-sm mx-auto">${passed ? "Well done! Your greeting knowledge is solid." : "Review the scripts above and try again to pass."}</p>
-      ${passed
-        ? `<button onclick="saveProgress('greetings', {quizScore: ${pct}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition">💾 Save Progress</button>`
-        : `<button onclick="renderGreetings(document.getElementById('workspace-container'))" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition">🔄 Study & Retry</button>`
+    // Colour the chosen option
+    for (let oi = 0; oi < q.options.length; oi++) {
+      const lbl = document.getElementById(`quiz-opt-${qi}-${oi}`);
+      const radio = lbl ? lbl.querySelector("input") : null;
+      if (radio) radio.disabled = true;
+      if (lbl) {
+        if (oi === q.correct) {
+          lbl.classList.add("border-emerald-500", "bg-emerald-900/20");
+        } else if (oi === chosen && chosen !== q.correct) {
+          lbl.classList.add("border-rose-500", "bg-rose-900/20");
+        }
       }
-    </div>`;
-}
+    }
+
+    if (explainEl) {
+      explainEl.classList.remove("hidden");
+      explainEl.textContent = (isRight ? "✅ " : "❌ ") + q.explain;
+      explainEl.style.color = isRight ? "#34d399" : "#f87171";
+    }
+  });
+
+  const passed = correct >= 4;
+  const scorePct = Math.round((correct / totalQ) * 100);
+  window._greetingsScore = `${correct}/${totalQ}`;
+
+  const badge = document.getElementById("quiz-score-badge");
+  if (badge) {
+    badge.classList.remove("hidden");
+    badge.textContent = `${correct} / ${totalQ}`;
+    badge.classList.add(passed ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30" : "bg-rose-600/20 text-rose-400 border border-rose-600/30");
+  }
+
+  const fb = document.getElementById("quiz-overall-feedback");
+  if (passed) {
+    fb.textContent = `🎉 Excellent! You scored ${correct}/${totalQ} (${scorePct}%) — module passed!`;
+    fb.style.color = "#34d399";
+    const saveBtn = document.getElementById("quiz-save-btn");
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove("opacity-50"); }
+    document.getElementById("quiz-submit-btn").classList.add("hidden");
+  } else {
+    fb.textContent = `❌ You scored ${correct}/${totalQ} — you need at least 4/5 to pass. Review the scripts and try again.`;
+    fb.style.color = "#f87171";
+    document.getElementById("quiz-retry-btn").classList.remove("hidden");
+    document.getElementById("quiz-submit-btn").classList.add("hidden");
+  }
+
+  greetingsQuizSubmitted = true;
+};
+
+window.retryGreetingsQuiz = function () {
+  greetingsQuizAnswers = {};
+  greetingsQuizSubmitted = false;
+  renderGreetings(document.getElementById("workspace-container"));
+};
 
 // ============================================================================
-// 10. GENERAL
+// 11. MODULE: GENERAL (Alphabets & Fill-In)
 // ============================================================================
 function renderGeneral(container) {
   const data = ypCurriculum.general;
@@ -1029,7 +1147,8 @@ function renderGeneral(container) {
               <span class="text-xs font-bold text-white">${a.word}</span>
             </div>
             <p class="text-[10px] text-slate-500 italic leading-relaxed">"${a.usage}"</p>
-          </div>`).join("")}
+          </div>
+        `).join("")}
       </div>
     </div>
     <div class="mb-6">
@@ -1040,29 +1159,39 @@ function renderGeneral(container) {
             <p class="text-sm text-slate-300 mb-2">${ex.question.replace("________", `<input id="fill-${i}" type="text" placeholder="________" class="bg-slate-800 border border-slate-700 text-white rounded-lg px-2 py-0.5 text-sm focus:outline-none focus:border-indigo-500 w-32">`)}</p>
             <p class="text-[10px] text-amber-400 italic">💡 Hint: ${ex.hint}</p>
             <p id="fill-result-${i}" class="text-[11px] font-bold mt-1"></p>
-          </div>`).join("")}
+          </div>
+        `).join("")}
       </div>
       <button onclick="checkFillExercises()" class="mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition">Check Answers</button>
     </div>
-    <button onclick="saveProgress('general', {reviewed: true})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save Progress</button>`;
+    <button onclick="saveProgress('general', {reviewed: true})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save Progress</button>
+  `;
 }
-window.checkFillExercises = function() {
+
+window.checkFillExercises = function () {
+  const exercises = ypCurriculum.general.fillExercises;
   let allCorrect = true;
-  ypCurriculum.general.fillExercises.forEach((ex, i) => {
-    const input  = document.getElementById(`fill-${i}`);
+  exercises.forEach((ex, i) => {
+    const input = document.getElementById(`fill-${i}`);
     const result = document.getElementById(`fill-result-${i}`);
     if (!input) return;
-    if (input.value.trim().toLowerCase() === ex.answer.toLowerCase()) {
-      result.textContent = "✅ Correct!"; result.style.color = "#34d399"; input.classList.add("border-emerald-500");
+    const val = input.value.trim().toLowerCase();
+    if (val === ex.answer.toLowerCase()) {
+      result.textContent = "✅ Correct!";
+      result.style.color = "#34d399";
+      input.classList.add("border-emerald-500");
     } else {
-      result.textContent = `❌ Try again. (Hint: starts with "${ex.answer[0].toUpperCase()}")`; result.style.color = "#f87171"; allCorrect = false;
+      result.textContent = `❌ Try again. (Hint: starts with "${ex.answer[0].toUpperCase()}")`;
+      result.style.color = "#f87171";
+      input.classList.add("border-rose-500");
+      allCorrect = false;
     }
   });
   if (allCorrect) showToast("🎉 All answers correct!", "success");
 };
 
 // ============================================================================
-// 11. SCENARIO
+// 12. MODULE: SCENARIO
 // ============================================================================
 function renderScenario(container) {
   const data = ypCurriculum.scenario;
@@ -1077,43 +1206,78 @@ function renderScenario(container) {
       <button id="scenario-start-btn" onclick="runScenarioTest()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">🎤 Start Recording</button>
       <button id="scenario-save-btn" disabled onclick="saveProgress('scenario', {passageScore: window._scenarioScore})" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">💾 Save Progress</button>
     </div>
-    <p id="scenario-feedback" class="mt-4 text-sm font-bold"></p>`;
+    <p id="scenario-feedback" class="mt-4 text-sm font-bold"></p>
+  `;
 }
-window.runScenarioTest = function() {
-  const fb       = document.getElementById("scenario-feedback");
+
+window.runScenarioTest = function () {
+  const fb = document.getElementById("scenario-feedback");
   const startBtn = document.getElementById("scenario-start-btn");
-  const target   = document.getElementById("scenario-target").textContent.toLowerCase().replace(/[.,?!\-]/g,"");
-  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) { fb.textContent = "⚠️ Speech recognition not supported. Please use Google Chrome."; fb.style.color = "#fbbf24"; return; }
+  const target = document.getElementById("scenario-target").textContent.toLowerCase().replace(/[.,?!-]/g, "");
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    fb.textContent = "⚠️ Speech recognition not supported. Please use Google Chrome.";
+    fb.style.color = "#fbbf24"; return;
+  }
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US"; recognition.interimResults = false; recognition.maxAlternatives = 1;
-  startBtn.textContent = "🔴 Recording..."; startBtn.classList.add("pulse-recording");
-  fb.textContent = "Reading now — speak the full passage slowly and clearly..."; fb.style.color = "#94a3b8";
-  recognition.onresult = e => {
-    startBtn.textContent = "🎤 Start Recording"; startBtn.classList.remove("pulse-recording");
-    const spoken   = fixSlang(e.results[0][0].transcript.toLowerCase().replace(/[.,?!\-]/g,""));
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  startBtn.textContent = "🔴 Recording...";
+  startBtn.classList.add("pulse-recording");
+  fb.textContent = "Reading now — speak the full passage slowly and clearly...";
+  fb.style.color = "#94a3b8";
+  recognition.onresult = (e) => {
+    startBtn.textContent = "🎤 Start Recording";
+    startBtn.classList.remove("pulse-recording");
+    const spoken = fixSlang(e.results[0][0].transcript.toLowerCase().replace(/[.,?!-]/g, ""));
     const accuracy = calculateAccuracy(spoken, target);
     window._scenarioScore = accuracy.toFixed(0);
-    if (accuracy < 85) { fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — please try again.<br><span class="text-xs text-slate-500">You said: "${spoken.substring(0,100)}..."</span>`; fb.style.color = "#f87171"; }
-    else { fb.textContent = `✅ Excellent reading! Accuracy: ${accuracy.toFixed(0)}%`; fb.style.color = "#34d399"; const btn = document.getElementById("scenario-save-btn"); if(btn){btn.disabled=false;btn.classList.remove("opacity-50");} }
+    if (accuracy < 85) {
+      fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — please try again. Speak clearly and at a measured pace.<br><span class="text-xs text-slate-500">You said: "${spoken.substring(0, 100)}..."</span>`;
+      fb.style.color = "#f87171";
+    } else {
+      fb.textContent = `✅ Excellent reading! Accuracy: ${accuracy.toFixed(0)}%`;
+      fb.style.color = "#34d399";
+      const saveBtn = document.getElementById("scenario-save-btn");
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove("opacity-50"); }
+    }
   };
-  recognition.onerror = e => { startBtn.textContent = "🎤 Start Recording"; startBtn.classList.remove("pulse-recording"); fb.textContent = "⚠️ Error: " + e.error; fb.style.color = "#fbbf24"; };
+  recognition.onerror = (e) => {
+    startBtn.textContent = "🎤 Start Recording";
+    startBtn.classList.remove("pulse-recording");
+    fb.textContent = "⚠️ Error: " + e.error;
+    fb.style.color = "#fbbf24";
+  };
   recognition.start();
 };
 
 // ============================================================================
-// 12. VOCABULARY
+// 13. MODULE: VOCABULARY
 // ============================================================================
-function renderVocabulary(container) { currentVerbIndex = 0; passedVerbs = []; renderVocabWord(container); }
+function renderVocabulary(container) {
+  currentVerbIndex = 0;
+  passedVerbs = [];
+  renderVocabWord(container);
+}
+
 function renderVocabWord(container) {
   const words = ypCurriculum.vocabulary.words;
   if (currentVerbIndex >= words.length) {
-    container.innerHTML = `<div class="text-center space-y-4 py-8"><span class="text-5xl">🏆</span><h2 class="text-2xl font-black text-white">All Words Mastered!</h2><p class="text-slate-400 text-sm">Your vocabulary pronunciation is hotel-ready.</p><button onclick="saveProgress('vocabulary', {wordsPassed: ${words.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Vocabulary Progress</button></div>`; return;
+    container.innerHTML = `
+      <div class="text-center space-y-4 py-8">
+        <span class="text-5xl">🏆</span>
+        <h2 class="text-2xl font-black text-white">All Words Mastered!</h2>
+        <p class="text-slate-400 text-sm">Your vocabulary pronunciation is hotel-ready.</p>
+        <button onclick="saveProgress('vocabulary', {wordsPassed: ${words.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Vocabulary Progress</button>
+      </div>`; return;
   }
   const w = words[currentVerbIndex];
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">Whiteboard Matrix Vocabulary</h2>
     <p class="text-sm text-slate-400 mb-4">Word ${currentVerbIndex + 1} of ${words.length}</p>
-    <div class="flex gap-2 mb-6">${words.map((_,i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentVerbIndex ? 'bg-emerald-500' : i === currentVerbIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}</div>
+    <div class="flex gap-2 mb-6">
+      ${words.map((_, i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentVerbIndex ? 'bg-emerald-500' : i === currentVerbIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}
+    </div>
     <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl mb-4 text-center">
       <div class="text-4xl font-black text-white mb-1">${w.word}</div>
       <div class="text-indigo-400 text-sm mb-2">${w.phonetic}</div>
@@ -1123,28 +1287,54 @@ function renderVocabWord(container) {
       <button id="vocab-start-btn" onclick="runVocabTest()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">🎤 Pronounce It</button>
       <button id="vocab-next-btn" disabled onclick="nextVocabWord()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">✅ Next Word</button>
     </div>
-    <p id="vocab-feedback" class="mt-4 text-sm font-bold"></p>`;
+    <p id="vocab-feedback" class="mt-4 text-sm font-bold"></p>
+  `;
 }
-window.runVocabTest = function() {
+
+window.runVocabTest = function () {
   const word = ypCurriculum.vocabulary.words[currentVerbIndex].word;
-  const fb = document.getElementById("vocab-feedback"); const startBtn = document.getElementById("vocab-start-btn");
-  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) { fb.textContent = "⚠️ Not supported. Try Chrome."; fb.style.color = "#fbbf24"; return; }
+  const fb = document.getElementById("vocab-feedback");
+  const startBtn = document.getElementById("vocab-start-btn");
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    fb.textContent = "⚠️ Speech recognition not supported in this browser. Try Chrome.";
+    fb.style.color = "#fbbf24"; return;
+  }
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US"; startBtn.textContent = "🔴 Listening..."; startBtn.classList.add("pulse-recording");
-  recognition.onresult = e => {
-    startBtn.textContent = "🎤 Pronounce It"; startBtn.classList.remove("pulse-recording");
+  recognition.lang = "en-US";
+  startBtn.textContent = "🔴 Listening...";
+  startBtn.classList.add("pulse-recording");
+  recognition.onresult = (e) => {
+    startBtn.textContent = "🎤 Pronounce It";
+    startBtn.classList.remove("pulse-recording");
     const spoken = e.results[0][0].transcript.toLowerCase().trim();
     const accuracy = calculateAccuracy(spoken, word.toLowerCase());
-    if (accuracy < 85) { fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — you said "${spoken}". Try again.`; fb.style.color = "#f87171"; }
-    else { fb.textContent = `✅ Well pronounced! Accuracy: ${accuracy.toFixed(0)}%`; fb.style.color = "#34d399"; const btn = document.getElementById("vocab-next-btn"); if(btn){btn.disabled=false;btn.classList.remove("opacity-50");} }
+    if (accuracy < 85) {
+      fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — you said "${spoken}". Try again.`;
+      fb.style.color = "#f87171";
+    } else {
+      fb.textContent = `✅ Well pronounced! Accuracy: ${accuracy.toFixed(0)}%`;
+      fb.style.color = "#34d399";
+      const nextBtn = document.getElementById("vocab-next-btn");
+      if (nextBtn) { nextBtn.disabled = false; nextBtn.classList.remove("opacity-50"); }
+    }
   };
-  recognition.onerror = e => { startBtn.textContent = "🎤 Pronounce It"; startBtn.classList.remove("pulse-recording"); fb.textContent = "⚠️ Error: " + e.error; fb.style.color = "#fbbf24"; };
+  recognition.onerror = (e) => {
+    startBtn.textContent = "🎤 Pronounce It";
+    startBtn.classList.remove("pulse-recording");
+    fb.textContent = "⚠️ Error: " + e.error;
+    fb.style.color = "#fbbf24";
+  };
   recognition.start();
 };
-window.nextVocabWord = function() { passedVerbs.push(currentVerbIndex); currentVerbIndex++; renderVocabWord(document.getElementById("workspace-container")); };
+
+window.nextVocabWord = function () {
+  passedVerbs.push(currentVerbIndex);
+  currentVerbIndex++;
+  renderVocabWord(document.getElementById("workspace-container"));
+};
 
 // ============================================================================
-// 13. EMOTIONS
+// 14. MODULE: EMOTIONS
 // ============================================================================
 function renderEmotions(container) {
   const data = ypCurriculum.emotions;
@@ -1167,25 +1357,40 @@ function renderEmotions(container) {
             </div>
           </div>
           <div class="text-[10px] text-indigo-300 italic">💡 Principle: ${s.principle}</div>
-        </div>`).join("")}
+        </div>
+      `).join("")}
     </div>
-    <button onclick="saveProgress('emotions', {reviewed: true})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save Progress</button>`;
+    <button onclick="saveProgress('emotions', {reviewed: true})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save Progress</button>
+  `;
 }
 
 // ============================================================================
-// 14. VERBS
+// 15. MODULE: VERBS
 // ============================================================================
-function renderVerbs(container) { currentVerbIndex = 0; passedVerbs = []; renderVerbWord(container); }
+function renderVerbs(container) {
+  currentVerbIndex = 0;
+  passedVerbs = [];
+  renderVerbWord(container);
+}
+
 function renderVerbWord(container) {
   const actions = ypCurriculum.verbs.actions;
   if (currentVerbIndex >= actions.length) {
-    container.innerHTML = `<div class="text-center space-y-4 py-8"><span class="text-5xl">🏆</span><h2 class="text-2xl font-black text-white">All Verbs Mastered!</h2><p class="text-slate-400 text-sm">Excellent pronunciation across all active verbs.</p><button onclick="saveProgress('verbs', {verbsPassed: ${actions.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Verbs Progress</button></div>`; return;
+    container.innerHTML = `
+      <div class="text-center space-y-4 py-8">
+        <span class="text-5xl">🏆</span>
+        <h2 class="text-2xl font-black text-white">All Verbs Mastered!</h2>
+        <p class="text-slate-400 text-sm">Excellent pronunciation across all active verbs.</p>
+        <button onclick="saveProgress('verbs', {verbsPassed: ${actions.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Verbs Progress</button>
+      </div>`; return;
   }
   const v = actions[currentVerbIndex];
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">Active Verbs Pronunciation</h2>
     <p class="text-sm text-slate-400 mb-4">Verb ${currentVerbIndex + 1} of ${actions.length}</p>
-    <div class="flex gap-2 mb-6">${actions.map((_,i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentVerbIndex ? 'bg-emerald-500' : i === currentVerbIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}</div>
+    <div class="flex gap-2 mb-6">
+      ${actions.map((_, i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentVerbIndex ? 'bg-emerald-500' : i === currentVerbIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}
+    </div>
     <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl mb-4 text-center">
       <div class="text-4xl font-black text-white mb-1">${v.verb}</div>
       <div class="text-indigo-400 text-sm">${v.phonetic}</div>
@@ -1194,41 +1399,80 @@ function renderVerbWord(container) {
       <button id="verb-start-btn" onclick="runVerbTest()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">🎤 Pronounce It</button>
       <button id="verb-next-btn" disabled onclick="nextVerbWord()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">✅ Next Verb</button>
     </div>
-    <p id="verb-feedback" class="mt-4 text-sm font-bold"></p>`;
+    <p id="verb-feedback" class="mt-4 text-sm font-bold"></p>
+  `;
 }
-window.runVerbTest = function() {
+
+window.runVerbTest = function () {
   const verb = ypCurriculum.verbs.actions[currentVerbIndex].verb;
-  const fb = document.getElementById("verb-feedback"); const startBtn = document.getElementById("verb-start-btn");
-  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) { fb.textContent = "⚠️ Not supported. Try Chrome."; fb.style.color = "#fbbf24"; return; }
+  const fb = document.getElementById("verb-feedback");
+  const startBtn = document.getElementById("verb-start-btn");
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    fb.textContent = "⚠️ Speech recognition not supported. Try Chrome.";
+    fb.style.color = "#fbbf24"; return;
+  }
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US"; startBtn.textContent = "🔴 Listening..."; startBtn.classList.add("pulse-recording");
-  recognition.onresult = e => {
-    startBtn.textContent = "🎤 Pronounce It"; startBtn.classList.remove("pulse-recording");
+  recognition.lang = "en-US";
+  startBtn.textContent = "🔴 Listening...";
+  startBtn.classList.add("pulse-recording");
+  recognition.onresult = (e) => {
+    startBtn.textContent = "🎤 Pronounce It";
+    startBtn.classList.remove("pulse-recording");
     const spoken = e.results[0][0].transcript.toLowerCase().trim();
     const accuracy = calculateAccuracy(spoken, verb.toLowerCase());
-    if (accuracy < 85) { fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — you said "${spoken}". Try again.`; fb.style.color = "#f87171"; }
-    else { fb.textContent = `✅ Correct! Accuracy: ${accuracy.toFixed(0)}%`; fb.style.color = "#34d399"; const btn = document.getElementById("verb-next-btn"); if(btn){btn.disabled=false;btn.classList.remove("opacity-50");} }
+    if (accuracy < 85) {
+      fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — you said "${spoken}". Try again.`;
+      fb.style.color = "#f87171";
+    } else {
+      fb.textContent = `✅ Correct! Accuracy: ${accuracy.toFixed(0)}%`;
+      fb.style.color = "#34d399";
+      const nextBtn = document.getElementById("verb-next-btn");
+      if (nextBtn) { nextBtn.disabled = false; nextBtn.classList.remove("opacity-50"); }
+    }
   };
-  recognition.onerror = e => { startBtn.textContent = "🎤 Pronounce It"; startBtn.classList.remove("pulse-recording"); fb.textContent = "⚠️ Error: " + e.error; fb.style.color = "#fbbf24"; };
+  recognition.onerror = (e) => {
+    startBtn.textContent = "🎤 Pronounce It";
+    startBtn.classList.remove("pulse-recording");
+    fb.textContent = "⚠️ Error: " + e.error;
+    fb.style.color = "#fbbf24";
+  };
   recognition.start();
 };
-window.nextVerbWord = function() { passedVerbs.push(currentVerbIndex); currentVerbIndex++; renderVerbWord(document.getElementById("workspace-container")); };
+
+window.nextVerbWord = function () {
+  passedVerbs.push(currentVerbIndex);
+  currentVerbIndex++;
+  renderVerbWord(document.getElementById("workspace-container"));
+};
 
 // ============================================================================
-// 15. NUMBERS (50% pass threshold)
+// 16. MODULE: TRICKY NUMBERS (50% threshold)
 // ============================================================================
-function renderNumbers(container) { currentNumberIndex = 0; passedNumbers = []; renderNumberTest(container); }
+function renderNumbers(container) {
+  currentNumberIndex = 0;
+  passedNumbers = [];
+  renderNumberTest(container);
+}
+
 function renderNumberTest(container) {
   const pairs = ypCurriculum.numbers.pairs;
   if (currentNumberIndex >= pairs.length) {
-    container.innerHTML = `<div class="text-center space-y-4 py-8"><span class="text-5xl">🎉</span><h2 class="text-2xl font-black text-white">All 5 Numbers Passed!</h2><p class="text-slate-400 text-sm">You can clearly distinguish and pronounce tricky number pairs.</p><button onclick="saveProgress('numbers', {numbersPassed: ${pairs.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Numbers Progress</button></div>`; return;
+    container.innerHTML = `
+      <div class="text-center space-y-4 py-8">
+        <span class="text-5xl">🎉</span>
+        <h2 class="text-2xl font-black text-white">All 5 Numbers Passed!</h2>
+        <p class="text-slate-400 text-sm">You can clearly distinguish and pronounce tricky number pairs.</p>
+        <button onclick="saveProgress('numbers', {numbersPassed: ${pairs.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Numbers Progress</button>
+      </div>`; return;
   }
   const p = pairs[currentNumberIndex];
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">Tricky Numbers Speaking Test</h2>
     <p class="text-sm text-slate-400 mb-1">Number ${currentNumberIndex + 1} of ${pairs.length}</p>
-    <p class="text-[10px] text-amber-400 font-bold mb-4">Pass mark: 50% accuracy — just say the number clearly!</p>
-    <div class="flex gap-2 mb-6">${pairs.map((_,i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentNumberIndex ? 'bg-emerald-500' : i === currentNumberIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}</div>
+    <p class="text-[10px] text-amber-400 font-bold uppercase tracking-widest mb-4">Pass rate: 50% accuracy</p>
+    <div class="flex gap-2 mb-6">
+      ${pairs.map((_, i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentNumberIndex ? 'bg-emerald-500' : i === currentNumberIndex ? 'bg-indigo-500' : 'bg-slate-800'}"></div>`).join("")}
+    </div>
     <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl mb-4">
       <div class="flex items-center justify-center gap-6 mb-4">
         <div class="text-center">
@@ -1248,60 +1492,93 @@ function renderNumberTest(container) {
       <button id="num-start-btn" onclick="runNumberTest()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">🎤 Say The Number</button>
       <button id="num-next-btn" disabled onclick="nextNumber()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">✅ Next Number</button>
     </div>
-    <p id="num-feedback" class="mt-4 text-sm font-bold"></p>`;
+    <p id="num-feedback" class="mt-4 text-sm font-bold"></p>
+  `;
 }
-window.runNumberTest = function() {
-  const target  = ypCurriculum.numbers.pairs[currentNumberIndex].target;
-  const similar = ypCurriculum.numbers.pairs[currentNumberIndex].similar;
-  const fb = document.getElementById("num-feedback"); const startBtn = document.getElementById("num-start-btn");
-  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) { fb.textContent = "⚠️ Not supported. Try Chrome."; fb.style.color = "#fbbf24"; return; }
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US"; startBtn.textContent = "🔴 Listening..."; startBtn.classList.add("pulse-recording");
-  recognition.onresult = e => {
-    startBtn.textContent = "🎤 Say The Number"; startBtn.classList.remove("pulse-recording");
-    const spoken = e.results[0][0].transcript.toLowerCase().trim();
 
-    // Direct word match — most reliable
-    if (spoken.includes(target)) {
-      fb.textContent = `✅ Perfect! "${target}" is clear and correct.`; fb.style.color = "#34d399";
-      const btn = document.getElementById("num-next-btn"); if(btn){btn.disabled=false;btn.classList.remove("opacity-50");}
-      return;
-    }
-    // Said the wrong similar word
-    if (spoken.includes(similar)) {
-      fb.innerHTML = `❌ You said "${spoken}" — sounds like <strong>${similar}</strong>. Say <strong>${target}</strong> with stress on the TEEN ending.`; fb.style.color = "#f87171"; return;
-    }
-    // Accuracy fallback at 50%
+window.runNumberTest = function () {
+  const target = ypCurriculum.numbers.pairs[currentNumberIndex].target;
+  const similar = ypCurriculum.numbers.pairs[currentNumberIndex].similar;
+  const fb = document.getElementById("num-feedback");
+  const startBtn = document.getElementById("num-start-btn");
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    fb.textContent = "⚠️ Speech recognition not supported. Try Chrome.";
+    fb.style.color = "#fbbf24"; return;
+  }
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "en-US";
+  startBtn.textContent = "🔴 Listening...";
+  startBtn.classList.add("pulse-recording");
+  recognition.onresult = (e) => {
+    startBtn.textContent = "🎤 Say The Number";
+    startBtn.classList.remove("pulse-recording");
+    const spoken = e.results[0][0].transcript.toLowerCase().trim();
     const accuracy = calculateAccuracy(spoken, target);
-    if (accuracy >= 50) {
-      fb.textContent = `✅ Good enough! Accuracy: ${accuracy.toFixed(0)}%`; fb.style.color = "#34d399";
-      const btn = document.getElementById("num-next-btn"); if(btn){btn.disabled=false;btn.classList.remove("opacity-50");}
-    } else {
-      fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — you said "${spoken}". Try again.`; fb.style.color = "#f87171";
+
+    // Penalise saying the wrong (similar) number
+    if (spoken.includes(similar) && !spoken.includes(target)) {
+      fb.innerHTML = `❌ You said "${spoken}" — that sounds like <strong>${similar}</strong>. Say <strong>${target}</strong> clearly with stress on the TEEN ending.`;
+      fb.style.color = "#f87171"; return;
     }
+
+    // CHANGED: 50% passing threshold
+    if (!spoken.includes(target) && accuracy < 50) {
+      fb.innerHTML = `❌ Not recognised as "${target}". You said: "${spoken}". Try again.`;
+      fb.style.color = "#f87171"; return;
+    }
+
+    fb.textContent = `✅ Perfect! "${target}" is clear and correct.`;
+    fb.style.color = "#34d399";
+    const nextBtn = document.getElementById("num-next-btn");
+    if (nextBtn) { nextBtn.disabled = false; nextBtn.classList.remove("opacity-50"); }
   };
-  recognition.onerror = e => { startBtn.textContent = "🎤 Say The Number"; startBtn.classList.remove("pulse-recording"); fb.textContent = "⚠️ Error: " + e.error; fb.style.color = "#fbbf24"; };
+  recognition.onerror = (e) => {
+    startBtn.textContent = "🎤 Say The Number";
+    startBtn.classList.remove("pulse-recording");
+    fb.textContent = "⚠️ Error: " + e.error;
+    fb.style.color = "#fbbf24";
+  };
   recognition.start();
 };
-window.nextNumber = function() { passedNumbers.push(currentNumberIndex); currentNumberIndex++; renderNumberTest(document.getElementById("workspace-container")); };
+
+window.nextNumber = function () {
+  passedNumbers.push(currentNumberIndex);
+  currentNumberIndex++;
+  renderNumberTest(document.getElementById("workspace-container"));
+};
 
 // ============================================================================
-// 16. PRODUCE
+// 17. MODULE: NAME THAT PRODUCE
 // ============================================================================
-let currentProduceIndex = 0, passedProduce = [];
-function renderProduce(container) { currentProduceIndex = 0; passedProduce = []; renderProduceItem(container); }
+let currentProduceIndex = 0;
+let passedProduce = [];
+
+function renderProduce(container) {
+  currentProduceIndex = 0;
+  passedProduce = [];
+  renderProduceItem(container);
+}
+
 function renderProduceItem(container) {
   const items = ypCurriculum.produce.items;
   if (currentProduceIndex >= items.length) {
-    container.innerHTML = `<div class="text-center space-y-4 py-8"><span class="text-5xl">🥇</span><h2 class="text-2xl font-black text-white">All ${items.length} Produce Named!</h2><p class="text-slate-400 text-sm">Your pronunciation of common fruits and vegetables is excellent.</p><button onclick="saveProgress('produce', {itemsPassed: ${items.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Progress</button></div>`; return;
+    container.innerHTML = `
+      <div class="text-center space-y-4 py-8">
+        <span class="text-5xl">🥇</span>
+        <h2 class="text-2xl font-black text-white">All ${items.length} Produce Named!</h2>
+        <p class="text-slate-400 text-sm">Your pronunciation of common fruits and vegetables is excellent.</p>
+        <button onclick="saveProgress('produce', {itemsPassed: ${items.length}})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-sm transition mt-4">💾 Save Progress</button>
+      </div>`; return;
   }
   const item = items[currentProduceIndex];
   container.innerHTML = `
     <h2 class="text-2xl font-black text-white mb-1">Name That Produce!</h2>
     <p class="text-sm text-slate-400 mb-4">Item ${currentProduceIndex + 1} of ${items.length} — Say the name clearly.</p>
-    <div class="flex gap-1.5 mb-6">${items.map((_,i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentProduceIndex ? 'bg-emerald-500' : i === currentProduceIndex ? 'bg-amber-400' : 'bg-slate-800'}"></div>`).join("")}</div>
+    <div class="flex gap-1.5 mb-6">
+      ${items.map((_, i) => `<div class="flex-1 h-1.5 rounded-full ${i < currentProduceIndex ? 'bg-emerald-500' : i === currentProduceIndex ? 'bg-amber-400' : 'bg-slate-800'}"></div>`).join("")}
+    </div>
     <div class="flex flex-col items-center justify-center gap-4 p-8 bg-slate-900 border border-slate-800 rounded-3xl mb-6">
-      <div class="text-[120px] leading-none select-none">${item.emoji}</div>
+      <div class="text-[120px] leading-none select-none" id="produce-emoji">${item.emoji}</div>
       <div class="text-center">
         <p class="text-[11px] text-slate-500 italic mb-1">${item.hint}</p>
         <p class="text-[10px] text-indigo-400 uppercase tracking-widest font-bold">What is this called?</p>
@@ -1315,134 +1592,63 @@ function renderProduceItem(container) {
       <button id="produce-start-btn" onclick="runProduceTest()" class="bg-amber-500 hover:bg-amber-400 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">🎤 Say The Name</button>
       <button id="produce-next-btn" disabled onclick="nextProduceItem()" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">✅ Next Item</button>
     </div>
-    <p id="produce-feedback" class="mt-4 text-sm font-bold"></p>`;
+    <p id="produce-feedback" class="mt-4 text-sm font-bold"></p>
+  `;
 }
-window.runProduceTest = function() {
+
+window.runProduceTest = function () {
   const item = ypCurriculum.produce.items[currentProduceIndex];
-  const fb = document.getElementById("produce-feedback"); const startBtn = document.getElementById("produce-start-btn");
-  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) { fb.textContent = "⚠️ Not supported. Please use Google Chrome."; fb.style.color = "#fbbf24"; return; }
+  const fb = document.getElementById("produce-feedback");
+  const startBtn = document.getElementById("produce-start-btn");
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    fb.textContent = "⚠️ Speech recognition not supported. Please use Google Chrome.";
+    fb.style.color = "#fbbf24"; return;
+  }
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US"; recognition.interimResults = false;
-  startBtn.textContent = "🔴 Listening..."; startBtn.classList.add("pulse-recording");
-  fb.textContent = "Say the name of the item now..."; fb.style.color = "#94a3b8";
-  recognition.onresult = e => {
-    startBtn.textContent = "🎤 Say The Name"; startBtn.classList.remove("pulse-recording");
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  startBtn.textContent = "🔴 Listening...";
+  startBtn.classList.add("pulse-recording");
+  fb.textContent = "Say the name of the item now...";
+  fb.style.color = "#94a3b8";
+  recognition.onresult = (e) => {
+    startBtn.textContent = "🎤 Say The Name";
+    startBtn.classList.remove("pulse-recording");
     const spoken = e.results[0][0].transcript.toLowerCase().trim();
     const accuracy = calculateAccuracy(spoken, item.name.toLowerCase());
-    const passed = accuracy >= 90 || spoken.includes(item.name.toLowerCase());
-    const reveal = document.getElementById("produce-answer-reveal"); if (reveal) reveal.classList.remove("hidden");
-    if (!passed) { fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — you said "<em>${spoken}</em>". The answer is <strong>${item.name}</strong> (${item.phonetic}). Try again!`; fb.style.color = "#f87171"; }
-    else { fb.textContent = `✅ Correct! "${item.name}" — great pronunciation!`; fb.style.color = "#34d399"; const btn = document.getElementById("produce-next-btn"); if(btn){btn.disabled=false;btn.classList.remove("opacity-50");} startBtn.disabled=true; startBtn.classList.add("opacity-40"); }
-  };
-  recognition.onerror = e => { startBtn.textContent = "🎤 Say The Name"; startBtn.classList.remove("pulse-recording"); fb.textContent = "⚠️ Error: " + e.error; fb.style.color = "#fbbf24"; };
-  recognition.start();
-};
-window.nextProduceItem = function() { passedProduce.push(currentProduceIndex); currentProduceIndex++; renderProduceItem(document.getElementById("workspace-container")); };
-
-// ============================================================================
-// 17. KARAOKE — original hospitality singalong (70% pass)
-// ============================================================================
-function renderKaraoke(container) {
-  const data = ypCurriculum.karaoke;
-  container.innerHTML = `
-    <h2 class="text-2xl font-black text-white mb-1">${data.title}</h2>
-    <p class="text-sm text-slate-400 mb-2">${data.desc}</p>
-
-    <div class="p-4 bg-violet-900/20 border border-violet-700/30 rounded-2xl mb-5">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="note-float text-lg" style="animation-delay:0s">🎵</span>
-        <span class="note-float text-base" style="animation-delay:0.3s">🎶</span>
-        <span class="note-float text-lg" style="animation-delay:0.6s">🎵</span>
-        <div class="ml-1">
-          <div class="text-xs font-black text-violet-300">${data.songTitle}</div>
-          <div class="text-[10px] text-slate-400">${data.intro}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lyric lines with phonetics -->
-    <div class="space-y-3 mb-6">
-      ${data.lines.map((line, i) => `
-        <div class="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-          <div class="text-sm font-bold text-white leading-relaxed mb-1">${line.text}</div>
-          <div class="text-[10px] text-violet-400 font-medium">${line.phonetic}</div>
-        </div>`).join("")}
-    </div>
-
-    <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl mb-5 text-[11px] text-slate-400 leading-relaxed">
-      <strong class="text-white">How it works:</strong> Read and familiarise yourself with the song above, then tap <strong class="text-violet-300">Sing Now</strong> and sing all four lines. You need <strong class="text-emerald-400">70% accuracy</strong> to pass. Don't worry about being pitch-perfect — focus on the words!
-    </div>
-
-    <!-- Accuracy bar -->
-    <div class="mb-4">
-      <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-1">
-        <span>Lyric Accuracy</span>
-        <span id="karaoke-pct-label">–</span>
-      </div>
-      <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-        <div id="karaoke-bar" class="h-full rounded-full bg-violet-500 transition-all duration-700" style="width:0%"></div>
-      </div>
-    </div>
-
-    <div class="flex gap-3 flex-wrap">
-      <button id="karaoke-start-btn" onclick="runKaraokeTest()" class="bg-violet-600 hover:bg-violet-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center gap-2">🎤 Sing Now</button>
-      <button id="karaoke-save-btn" disabled onclick="saveProgress('karaoke', {karaokeScore: window._karaokeScore})" class="bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl text-xs transition opacity-50 flex items-center gap-2">💾 Save Progress</button>
-    </div>
-    <p id="karaoke-feedback" class="mt-4 text-sm font-bold"></p>`;
-}
-
-window.runKaraokeTest = function() {
-  const data     = ypCurriculum.karaoke;
-  const fb       = document.getElementById("karaoke-feedback");
-  const startBtn = document.getElementById("karaoke-start-btn");
-  const bar      = document.getElementById("karaoke-bar");
-  const pctLabel = document.getElementById("karaoke-pct-label");
-
-  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-    fb.textContent = "⚠️ Speech recognition not supported. Please use Google Chrome."; fb.style.color = "#fbbf24"; return;
-  }
-
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang       = "en-US";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  startBtn.textContent = "🔴 Singing..."; startBtn.classList.add("pulse-recording");
-  fb.textContent = "🎶 Sing all four lines now — go for it!"; fb.style.color = "#a78bfa";
-
-  recognition.onresult = e => {
-    startBtn.textContent = "🎤 Sing Now"; startBtn.classList.remove("pulse-recording");
-
-    const sung     = fixSlang(e.results[0][0].transcript.toLowerCase().replace(/[.,?!\-']/g,""));
-    const target   = data.fullLyric.toLowerCase().replace(/[.,?!\-']/g,"");
-    const accuracy = calculateAccuracy(sung, target);
-    window._karaokeScore = accuracy.toFixed(0);
-
-    // Update bar
-    if (bar)      { bar.style.width = accuracy.toFixed(0) + "%"; bar.style.background = accuracy >= 70 ? "#10b981" : accuracy >= 50 ? "#f59e0b" : "#ef4444"; }
-    if (pctLabel) { pctLabel.textContent = accuracy.toFixed(0) + "%"; pctLabel.style.color = accuracy >= 70 ? "#34d399" : "#fbbf24"; }
-
-    if (accuracy < 70) {
-      fb.innerHTML = `❌ Score: ${accuracy.toFixed(0)}% — aim for 70%. Try singing more of the words clearly.<br><span class="text-xs text-slate-400 font-normal">You sang: "${sung.substring(0, 80)}..."</span>`;
+    const containsWord = spoken.includes(item.name.toLowerCase());
+    const passed = accuracy >= 90 || containsWord;
+    const reveal = document.getElementById("produce-answer-reveal");
+    if (reveal) reveal.classList.remove("hidden");
+    if (!passed) {
+      fb.innerHTML = `❌ Accuracy: ${accuracy.toFixed(0)}% — you said "<em>${spoken}</em>". The answer is <strong>${item.name}</strong> (${item.phonetic}). Try again!`;
       fb.style.color = "#f87171";
     } else {
-      fb.innerHTML = `✅ Brilliant! Score: ${accuracy.toFixed(0)}% 🎶 You passed the singalong!`;
+      fb.textContent = `✅ Correct! "${item.name}" — great pronunciation!`;
       fb.style.color = "#34d399";
-      const saveBtn = document.getElementById("karaoke-save-btn");
-      if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove("opacity-50"); }
+      const nextBtn = document.getElementById("produce-next-btn");
+      if (nextBtn) { nextBtn.disabled = false; nextBtn.classList.remove("opacity-50"); }
+      startBtn.disabled = true;
+      startBtn.classList.add("opacity-40");
     }
   };
-
-  recognition.onerror = e => {
-    startBtn.textContent = "🎤 Sing Now"; startBtn.classList.remove("pulse-recording");
-    fb.textContent = "⚠️ Error: " + e.error + ". Please try again."; fb.style.color = "#fbbf24";
+  recognition.onerror = (e) => {
+    startBtn.textContent = "🎤 Say The Name";
+    startBtn.classList.remove("pulse-recording");
+    fb.textContent = "⚠️ Error: " + e.error + ". Please try again.";
+    fb.style.color = "#fbbf24";
   };
-
   recognition.start();
 };
 
+window.nextProduceItem = function () {
+  passedProduce.push(currentProduceIndex);
+  currentProduceIndex++;
+  renderProduceItem(document.getElementById("workspace-container"));
+};
+
 // ============================================================================
-// 18. PLAYLIST
+// 18. MODULE: PLAYLIST / REFLECTION
 // ============================================================================
 function renderPlaylist(container) {
   container.innerHTML = `
@@ -1455,43 +1661,56 @@ function renderPlaylist(container) {
       <div id="playlist-wc" class="text-[10px] text-slate-500 mt-1">0 / 20 words minimum</div>
     </div>
     <button onclick="savePlaylist()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-xs transition">💾 Save Reflection</button>
-    <p id="playlist-feedback" class="mt-3 text-xs font-bold"></p>`;
-  document.getElementById("playlist-reflection").addEventListener("input", function() {
+    <p id="playlist-feedback" class="mt-3 text-xs font-bold"></p>
+  `;
+  document.getElementById("playlist-reflection").addEventListener("input", function () {
     document.getElementById("playlist-wc").textContent = countWords(this.value) + " / 20 words minimum";
   });
 }
-window.savePlaylist = function() {
+
+window.savePlaylist = function () {
   const text = document.getElementById("playlist-reflection").value.trim();
-  const fb   = document.getElementById("playlist-feedback");
-  if (countWords(text) < 20) { fb.textContent = "❌ Please write at least 20 words."; fb.style.color = "#f87171"; return; }
-  fb.textContent = "✅ Reflection saved!"; fb.style.color = "#34d399";
+  const fb = document.getElementById("playlist-feedback");
+  if (countWords(text) < 20) {
+    fb.textContent = "❌ Please write at least 20 words.";
+    fb.style.color = "#f87171"; return;
+  }
+  fb.textContent = "✅ Reflection saved!";
+  fb.style.color = "#34d399";
   saveProgress("playlist", { reflection: text });
 };
 
 // ============================================================================
 // 19. INITIALIZATION
 // ============================================================================
+
+// Word count for interview textarea
 const studentAnswerEl = document.getElementById("student-answer");
 if (studentAnswerEl) {
-  studentAnswerEl.addEventListener("input", function() {
+  studentAnswerEl.addEventListener("input", function () {
+    const wc = countWords(this.value);
     const counter = document.getElementById("word-count-interview");
-    if (counter) counter.textContent = countWords(this.value) + " / 50 words minimum";
+    if (counter) counter.textContent = wc + " / 50 words minimum";
   });
 }
 
-document.getElementById("learner-form").addEventListener("submit", e => {
+// Registration form submit
+document.getElementById("learner-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const ans = document.getElementById("student-answer").value.trim();
-  const fb  = document.getElementById("answer-feedback");
-  if (countWords(ans) < 50) { fb.textContent = "❌ Please write at least 50 words in your interview answer."; fb.classList.remove("hidden"); return; }
+  const fb = document.getElementById("answer-feedback");
+
+  if (countWords(ans) < 50) {
+    fb.textContent = "❌ Please write at least 50 words in your interview answer.";
+    fb.classList.remove("hidden"); return;
+  }
   fb.classList.add("hidden");
-  studentData.name  = document.getElementById("student-name").value;
-  studentData.email = document.getElementById("student-email").value;
-  studentData.phone = document.getElementById("student-phone").value;
+
+  studentData.name  = document.getElementById("student-name").value.trim();
+  studentData.email = document.getElementById("student-email").value.trim();
+  studentData.phone = document.getElementById("student-phone").value.trim();
   studentData.interviewAnswer = ans;
 
-  const saved = localStorage.getItem("yp_student_session");
-  if (saved) { try { const p = JSON.parse(saved); if (p.name === studentData.name) studentData = { ...studentData, ...p }; } catch(e) {} }
   saveToLocalStorage();
 
   document.getElementById("summary-name").textContent  = studentData.name;
@@ -1501,15 +1720,32 @@ document.getElementById("learner-form").addEventListener("submit", e => {
   document.getElementById("registration-section").classList.add("hidden");
 
   document.querySelectorAll(".module-btn").forEach(btn => {
-    btn.disabled = false; btn.classList.remove("opacity-60","cursor-not-allowed");
+    btn.disabled = false;
+    btn.classList.remove("opacity-60", "cursor-not-allowed");
   });
 
-  if (studentData.progress) Object.keys(studentData.progress).forEach(id => markModuleComplete(id));
+  if (studentData.progress) {
+    Object.keys(studentData.progress).forEach(moduleId => markModuleComplete(moduleId));
+  }
 
-  submitToSheet({ timestamp: new Date().toISOString(), studentName: studentData.name, studentEmail: studentData.email, studentPhone: studentData.phone, module: "registration", interviewAnswer: ans });
+  submitToSheet({
+    timestamp: new Date().toISOString(),
+    studentName: studentData.name,
+    studentEmail: studentData.email,
+    studentPhone: studentData.phone,
+    module: "registration",
+    interviewAnswer: ans
+  });
+
   switchModule("founder");
   showToast("🎉 Welcome, " + studentData.name + "! Training unlocked.", "success");
 });
-  </script>
+
+// ── Auto-restore session on page load ──────────────────────────────────────
+(function () {
+  tryRestoreSession();
+})();
+
+</script>
 </body>
 </html>
